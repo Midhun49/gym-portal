@@ -1,3 +1,7 @@
+databases:
+  - name: gymportal_db
+    plan: free
+
 services:
   - type: web
     name: gym-portal
@@ -7,3 +11,31 @@ services:
     envVars:
       - key: PORT
         value: "8080"
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+      - key: DB_HOST
+        fromDatabase:
+          name: gymportal_db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: gymportal_db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: gymportal_db
+          property: name
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: gymportal_db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: gymportal_db
+          property: password
+      - key: SPRING_DATASOURCE_DRIVER_CLASS_NAME
+        value: org.postgresql.Driver
+      - key: SPRING_JPA_DATABASE_PLATFORM
+        value: org.hibernate.dialect.PostgreSQLDialect
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
