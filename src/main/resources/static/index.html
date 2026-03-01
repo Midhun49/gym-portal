@@ -521,7 +521,7 @@
                                     <th>Username</th>
                                     <th>Email</th>
                                     <th>Joined</th>
-                                    <th>Action</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="members-tbody"></tbody>
@@ -559,6 +559,19 @@
 
     <!-- Toast notification -->
     <div id="toast" class="toast hidden"></div>
+
+    <!-- User Detail Modal -->
+    <div id="user-modal" class="modal-overlay hidden" onclick="if(event.target === this) closeUserModal()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Member Intelligence Profile</div>
+                <button class="modal-close" onclick="closeUserModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Data will be injected here -->
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>

@@ -647,14 +647,89 @@ async function loadAdmin() {
                     <td>${m.email}</td>
                     <td>${m.createdAt.split('T')[0]}</td>
                     <td>
-                        <button class="btn btn-danger" onclick="deleteMember(${m.id}, '${m.username}')">
-                            🗑 Remove
-                        </button>
+                        <div class="btn-group">
+                            <button class="btn btn-accent btn-sm" onclick="viewUserDetails(${m.id})">
+                                👁️ View
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteMember(${m.id}, '${m.username}')">
+                                🗑 Remove
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
         }
     } catch (e) { }
+}
+
+async function viewUserDetails(id) {
+    try {
+        const res = await fetch(`${API}/api/admin/users/${id}/details`);
+        const data = await res.json();
+        if (data.success) {
+            const modalBody = document.getElementById('modal-body');
+            const p = data.profile || {};
+            const m = data.membership || {};
+            const dp = data.dietPlan || {};
+            const progress = data.progress || [];
+
+            modalBody.innerHTML = `
+                <div class="detail-section">
+                    <div class="detail-section-title">👤 Basic Profile</div>
+                    <div class="detail-grid">
+                        <div class="detail-item"><div class="detail-label">Username</div><div class="detail-value">${data.username}</div></div>
+                        <div class="detail-item"><div class="detail-label">Email</div><div class="detail-value">${data.email}</div></div>
+                        <div class="detail-item"><div class="detail-label">Joined</div><div class="detail-value">${data.createdAt ? data.createdAt.split('T')[0] : 'N/A'}</div></div>
+                        <div class="detail-item"><div class="detail-label">Full Name</div><div class="detail-value">${p.fullName || 'N/A'}</div></div>
+                        <div class="detail-item"><div class="detail-label">Phone</div><div class="detail-value">${p.phoneNumber || 'N/A'}</div></div>
+                        <div class="detail-item"><div class="detail-label">Age/Gender</div><div class="detail-value">${p.age || '—'} / ${p.gender || '—'}</div></div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-section-title">⭐ Membership Status</div>
+                    <div class="detail-grid">
+                        <div class="detail-item"><div class="detail-label">Plan</div><div class="detail-value">${m.plan || 'No Active Plan'}</div></div>
+                        <div class="detail-item"><div class="detail-label">Status</div><div class="detail-value">${m.status || 'N/A'}</div></div>
+                        <div class="detail-item"><div class="detail-label">Valid Till</div><div class="detail-value">${m.endDate || 'N/A'}</div></div>
+                        <div class="detail-item"><div class="detail-label">Paid</div><div class="detail-value">₹${m.amountPaid || '0'}</div></div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-section-title">🥗 Latest Diet Plan (${dp.generatedAt ? dp.generatedAt.split('T')[0] : 'None'})</div>
+                    ${dp.id ? `
+                    <div class="detail-grid">
+                        <div class="detail-item"><div class="detail-label">BMI/BMR</div><div class="detail-value">${dp.bmi} / ${Math.round(dp.bmr)}</div></div>
+                        <div class="detail-item"><div class="detail-label">Target Calories</div><div class="detail-value">${dp.caloriesTarget} kcal</div></div>
+                        <div class="detail-item"><div class="detail-label">Macros (P/C/F)</div><div class="detail-value">${dp.proteinG}g / ${dp.carbsG}g / ${dp.fatsG}g</div></div>
+                    </div>
+                    ` : '<p class="muted">No diet plan generated for this user yet.</p>'}
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-section-title">📈 Recent Progress Logs</div>
+                    <div class="progress-list">
+                        ${progress.length > 0 ? progress.map(pg => `
+                            <div class="progress-item">
+                                <div><strong>${pg.loggedDate}</strong></div>
+                                <div>⚖️ ${pg.weightKg}kg | 🔥 ${pg.caloriesConsumed}kcal | 💧 ${pg.waterIntakeMl}ml</div>
+                            </div>
+                        `).join('') : '<p class="muted">No progress entries logged yet.</p>'}
+                    </div>
+                </div>
+            `;
+            document.getElementById('user-modal').classList.remove('hidden');
+        } else {
+            showToast(data.message, 'error');
+        }
+    } catch (e) {
+        showToast('Failed to fetch user details.', 'error');
+    }
+}
+
+function closeUserModal() {
+    document.getElementById('user-modal').classList.add('hidden');
 }
 
 async function handleAdminProfileUpdate(e) {

@@ -108,7 +108,7 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Get user details", description = "Returns full details including profile and membership for a given user ID")
+    @Operation(summary = "Get user details", description = "Returns full details including profile, membership, diet plan, and recent progress for a given user ID")
     @GetMapping("/users/{id}/details")
     public ResponseEntity<Map<String, Object>> getUserDetails(@PathVariable long id) {
         Map<String, Object> response = new HashMap<>();
@@ -121,6 +121,7 @@ public class AdminController {
             response.put("username", user.getUsername());
             response.put("email", user.getEmail());
             response.put("role", user.getRole().toString());
+            response.put("createdAt", user.getCreatedAt().toString());
 
             profileService.getProfile(id).ifPresent(p -> {
                 response.put("profile", p);
@@ -129,6 +130,16 @@ public class AdminController {
             membershipService.getMembership(id).ifPresent(m -> {
                 response.put("membership", m);
             });
+
+            dietPlanRepository.findFirstByUserIdOrderByGeneratedAtDesc(id).ifPresent(dp -> {
+                response.put("dietPlan", dp);
+            });
+
+            List<com.gymportal.entity.ProgressEntry> progress = progressRepository.findByUserIdOrderByLoggedDateAsc(id);
+            if (progress.size() > 5) {
+                progress = progress.subList(progress.size() - 5, progress.size());
+            }
+            response.put("progress", progress);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
