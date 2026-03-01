@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitForge — Gym Portal Management System</title>
+    <meta name="description"
+        content="Premium gym management portal with AI-powered Indian diet plans tailored to your fitness goals.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+
+    <!-- ── LOADING SCREEN ── -->
+    <div id="loader" class="loader">
+        <div class="loader-inner">
+            <div class="loader-logo">🏋️</div>
+            <div class="loader-text">FitForge</div>
+            <div class="loader-bar-wrap">
+                <div class="loader-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── AUTH SCREEN ── -->
+    <div id="auth-screen" class="auth-screen hidden">
+        <div class="auth-bg"></div>
+        <div class="auth-card">
+            <div class="auth-logo">
+                <span class="logo-icon">🏋️</span>
+                <span class="logo-text">FitForge</span>
+            </div>
+            <p class="auth-tagline">Your AI-Powered Indian Fitness Companion</p>
+
+            <div class="auth-tabs">
+                <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">Login</button>
+                <button class="tab-btn" id="tab-register" onclick="switchTab('register')">Register</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="login-username" placeholder="Enter username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-password" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Login to FitForge</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="auth-form hidden" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="reg-username" placeholder="Choose a username" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="reg-email" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="reg-password" placeholder="Create a password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+            </form>
+
+            <div id="auth-msg" class="auth-msg"></div>
+        </div>
+    </div>
+
+    <!-- ── MAIN APP ── -->
+    <div id="app" class="app hidden">
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span class="logo-icon">🏋️</span>
+                <span class="logo-text">FitForge</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">
+                    <span class="nav-icon">📊</span><span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="profile" onclick="navigate('profile')">
+                    <span class="nav-icon">👤</span><span>My Profile</span>
+                </a>
+                <a href="#" class="nav-item" data-page="diet" onclick="navigate('diet')">
+                    <span class="nav-icon">🥗</span><span>AI Diet Plan</span>
+                </a>
+                <a href="#" class="nav-item" data-page="workout" onclick="navigate('workout')">
+                    <span class="nav-icon">💪</span><span>Workouts</span>
+                </a>
+                <a href="#" class="nav-item" data-page="membership" onclick="navigate('membership')">
+                    <span class="nav-icon">⭐</span><span>Membership</span>
+                </a>
+                <a href="#" class="nav-item" data-page="progress" onclick="navigate('progress')">
+                    <span class="nav-icon">📈</span><span>Progress</span>
+                </a>
+                <a href="#" class="nav-item admin-only hidden" data-page="admin" onclick="navigate('admin')">
+                    <span class="nav-icon">🛡️</span><span>Admin Panel</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-pill">
+                    <span class="user-avatar" id="sidebar-avatar">👤</span>
+                    <div class="user-info">
+                        <span class="user-name" id="sidebar-username">—</span>
+                        <span class="user-role" id="sidebar-role">Member</span>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="logout()">⏻ Logout</button>
+            </div>
+        </aside>
+
+        <!-- Mobile hamburger -->
+        <button class="hamburger" id="hamburger" onclick="toggleSidebar()">☰</button>
+
+        <!-- Main Content -->
+        <main class="main-content" id="main-content">
+
+            <!-- ── DASHBOARD ── -->
+            <section id="page-dashboard" class="page active">
+                <div class="page-header">
+                    <h1>Dashboard</h1>
+                    <p class="subtitle" id="greeting">Welcome back!</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card" id="stat-bmi">
+                        <div class="stat-icon">⚖️</div>
+                        <div class="stat-label">BMI</div>
+                        <div class="stat-value" id="dash-bmi">—</div>
+                        <div class="stat-badge" id="dash-bmi-cat">—</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔥</div>
+                        <div class="stat-label">Daily Calories</div>
+                        <div class="stat-value" id="dash-calories">—</div>
+                        <div class="stat-badge">Target</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-label">Membership</div>
+                        <div class="stat-value" id="dash-plan">—</div>
+                        <div class="stat-badge" id="dash-plan-status">Active</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-label">Fitness Goal</div>
+                        <div class="stat-value" id="dash-goal">—</div>
+                        <div class="stat-badge">Current</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-title">🥗 Today's Meal Highlights</div>
+                        <div id="dash-meals" class="meal-preview">
+                            <p class="muted">Generate your AI diet plan to see today's meals here.</p>
+                        </div>
+                        <button class="btn btn-accent mt-2" onclick="navigate('diet')">View Full Plan →</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">🏋️ Quick Workout Tip</div>
+                        <div id="dash-workout-tip" class="workout-tip"></div>
+                        <button class="btn btn-outline mt-2" onclick="navigate('workout')">View Workouts →</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">📈 Progress Summary</div>
+                        <canvas id="dash-chart" height="120"></canvas>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">💡 Health Tips</div>
+                        <ul class="tip-list" id="health-tips"></ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── PROFILE ── -->
+            <section id="page-profile" class="page">
+                <div class="page-header">
+                    <h1>My Profile</h1>
+                    <p class="subtitle">Update your physical details to get accurate AI diet plans</p>
+                </div>
+
+                <div class="card form-card">
+                    <form id="profile-form" onsubmit="handleProfileSave(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Full Name</label>
+                                <input type="text" id="pf-name" placeholder="Your full name">
+                            </div>
+                            <div class="form-group">
+                                <label>Age (years)</label>
+                                <input type="number" id="pf-age" placeholder="e.g. 25" min="10" max="100">
+                            </div>
+                            <div class="form-group">
+                                <label>Gender</label>
+                                <select id="pf-gender">
+                                    <option value="">Select gender</option>
+                                    <option value="MALE">Male</option>
+                                    <option value="FEMALE">Female</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Height (cm)</label>
+                                <input type="number" id="pf-height" placeholder="e.g. 170" min="100" max="250"
+                                    step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label>Weight (kg)</label>
+                                <input type="number" id="pf-weight" placeholder="e.g. 70" min="30" max="300" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="tel" id="pf-phone" placeholder="+91 9876543210">
+                            </div>
+                            <div class="form-group">
+                                <label>🎯 Fitness Goal</label>
+                                <select id="pf-goal">
+                                    <option value="">Select goal</option>
+                                    <option value="LOSE_WEIGHT">Lose Weight</option>
+                                    <option value="GAIN_MUSCLE">Gain Muscle</option>
+                                    <option value="MAINTAIN">Maintain Weight</option>
+                                    <option value="IMPROVE_ENDURANCE">Improve Endurance</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>🏃 Activity Level</label>
+                                <select id="pf-activity">
+                                    <option value="">Select activity level</option>
+                                    <option value="SEDENTARY">Sedentary (desk job, no exercise)</option>
+                                    <option value="LIGHT">Light (1-3 days/week)</option>
+                                    <option value="MODERATE">Moderate (3-5 days/week)</option>
+                                    <option value="ACTIVE">Active (6-7 days/week)</option>
+                                    <option value="VERY_ACTIVE">Very Active (twice daily)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>🍽️ Diet Preference</label>
+                                <select id="pf-diet">
+                                    <option value="VEGETARIAN">🌿 Vegetarian</option>
+                                    <option value="NON_VEGETARIAN">🍗 Non-Vegetarian</option>
+                                </select>
+                            </div>
+                            <div class="form-group form-full">
+                                <label>Address</label>
+                                <input type="text" id="pf-address" placeholder="Your address">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">💾 Save Profile</button>
+                    </form>
+                    <div id="profile-msg" class="auth-msg mt-2"></div>
+                </div>
+            </section>
+
+            <!-- ── DIET PLAN ── -->
+            <section id="page-diet" class="page">
+                <div class="page-header">
+                    <h1>🥗 AI Diet Plan</h1>
+                    <p class="subtitle">Personalized meal plans for vegetarian & non-vegetarian — based on your
+                        body stats & goals</p>
+                </div>
+
+                <div class="diet-actions">
+                    <button class="btn btn-primary btn-lg" onclick="generateDietPlan()" id="gen-diet-btn">
+                        ✨ Generate My AI Diet Plan
+                    </button>
+                    <div class="diet-badge" id="diet-type-badge"></div>
+                </div>
+
+                <div id="diet-plan-container" class="hidden">
+                    <!-- Metrics Row -->
+                    <div class="metrics-row">
+                        <div class="metric-chip">🔢 BMI: <strong id="dp-bmi">—</strong></div>
+                        <div class="metric-chip">🔥 BMR: <strong id="dp-bmr">—</strong> kcal</div>
+                        <div class="metric-chip">⚡ TDEE: <strong id="dp-tdee">—</strong> kcal</div>
+                        <div class="metric-chip">🎯 Target: <strong id="dp-target">—</strong> kcal/day</div>
+                    </div>
+
+                    <!-- Macro breakdown -->
+                    <div class="macros-card card">
+                        <div class="card-title">📊 Daily Macro Targets</div>
+                        <div class="macros-grid">
+                            <div class="macro-item protein">
+                                <div class="macro-icon">💪</div>
+                                <div class="macro-label">Protein</div>
+                                <div class="macro-value" id="dp-protein">—g</div>
+                                <div class="macro-bar">
+                                    <div class="macro-bar-fill protein-fill" id="dp-protein-bar"></div>
+                                </div>
+                            </div>
+                            <div class="macro-item carbs">
+                                <div class="macro-icon">⚡</div>
+                                <div class="macro-label">Carbohydrates</div>
+                                <div class="macro-value" id="dp-carbs">—g</div>
+                                <div class="macro-bar">
+                                    <div class="macro-bar-fill carbs-fill" id="dp-carbs-bar"></div>
+                                </div>
+                            </div>
+                            <div class="macro-item fats">
+                                <div class="macro-icon">🥜</div>
+                                <div class="macro-label">Healthy Fats</div>
+                                <div class="macro-value" id="dp-fats">—g</div>
+                                <div class="macro-bar">
+                                    <div class="macro-bar-fill fats-fill" id="dp-fats-bar"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <canvas id="macro-chart" width="200" height="200" class="macro-donut"></canvas>
+                    </div>
+
+                    <!-- Meals -->
+                    <div class="meals-grid">
+                        <div class="meal-card">
+                            <div class="meal-time">🌅 Breakfast</div>
+                            <div class="meal-content" id="dp-breakfast">—</div>
+                        </div>
+                        <div class="meal-card">
+                            <div class="meal-time">☀️ Morning Snack</div>
+                            <div class="meal-content" id="dp-morning-snack">—</div>
+                        </div>
+                        <div class="meal-card">
+                            <div class="meal-time">🍛 Lunch</div>
+                            <div class="meal-content" id="dp-lunch">—</div>
+                        </div>
+                        <div class="meal-card">
+                            <div class="meal-time">🌤️ Evening Snack</div>
+                            <div class="meal-content" id="dp-evening-snack">—</div>
+                        </div>
+                        <div class="meal-card">
+                            <div class="meal-time">🌙 Dinner</div>
+                            <div class="meal-content" id="dp-dinner">—</div>
+                        </div>
+                        <div class="meal-card highlight">
+                            <div class="meal-time">⚡ Post-Workout</div>
+                            <div class="meal-content" id="dp-post-workout">—</div>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="card notes-card">
+                        <div class="card-title">📝 Personalised Health Notes</div>
+                        <div class="notes-content" id="dp-notes">—</div>
+                    </div>
+                </div>
+
+                <div id="diet-loading" class="loading-state hidden">
+                    <div class="spinner"></div>
+                    <p>AI is crafting your personalized meal plan...</p>
+                </div>
+            </section>
+
+            <!-- ── WORKOUTS ── -->
+            <section id="page-workout" class="page">
+                <div class="page-header">
+                    <h1>💪 Workout Plans</h1>
+                    <p class="subtitle">Goal-matched training programs from beginner to advanced</p>
+                </div>
+
+                <div class="workout-filter">
+                    <button class="filter-btn active" onclick="filterWorkout('all', this)">All</button>
+                    <button class="filter-btn" onclick="filterWorkout('LOSE_WEIGHT', this)">Weight Loss</button>
+                    <button class="filter-btn" onclick="filterWorkout('GAIN_MUSCLE', this)">Muscle Gain</button>
+                    <button class="filter-btn" onclick="filterWorkout('MAINTAIN', this)">Maintenance</button>
+                    <button class="filter-btn" onclick="filterWorkout('IMPROVE_ENDURANCE', this)">Endurance</button>
+                </div>
+
+                <div class="workout-grid" id="workout-grid"></div>
+            </section>
+
+            <!-- ── MEMBERSHIP ── -->
+            <section id="page-membership" class="page">
+                <div class="page-header">
+                    <h1>⭐ Membership</h1>
+                    <p class="subtitle">View your current plan and upgrade for more benefits</p>
+                </div>
+
+                <div class="current-plan card" id="current-plan-card">
+                    <div class="card-title">Your Current Plan</div>
+                    <div class="plan-display">
+                        <div class="plan-badge" id="mem-plan-badge">BASIC</div>
+                        <div class="plan-info">
+                            <div>Valid till: <strong id="mem-end-date">—</strong></div>
+                            <div>Status: <span class="badge-active" id="mem-status">ACTIVE</span></div>
+                            <div>Paid: <strong id="mem-price">—</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plans-grid">
+                    <div class="plan-card" id="plan-BASIC">
+                        <div class="plan-tier">🎽 Basic</div>
+                        <div class="plan-price">₹999<span>/month</span></div>
+                        <ul class="plan-features">
+                            <li>✅ Gym floor access</li>
+                            <li>✅ Basic equipment</li>
+                            <li>✅ Locker access</li>
+                            <li>❌ Group classes</li>
+                            <li>❌ Personal trainer</li>
+                        </ul>
+                        <button class="btn btn-outline" onclick="upgradePlan('BASIC')">Select Basic</button>
+                    </div>
+                    <div class="plan-card featured" id="plan-STANDARD">
+                        <div class="plan-badge-tag">POPULAR</div>
+                        <div class="plan-tier">🏅 Standard</div>
+                        <div class="plan-price">₹1,999<span>/month</span></div>
+                        <ul class="plan-features">
+                            <li>✅ Gym floor access</li>
+                            <li>✅ All equipment</li>
+                            <li>✅ Locker room</li>
+                            <li>✅ Group classes</li>
+                            <li>❌ Personal trainer</li>
+                        </ul>
+                        <button class="btn btn-primary" onclick="upgradePlan('STANDARD')">Go Standard</button>
+                    </div>
+                    <div class="plan-card gold" id="plan-PREMIUM">
+                        <div class="plan-tier">👑 Premium</div>
+                        <div class="plan-price">₹3,499<span>/month</span></div>
+                        <ul class="plan-features">
+                            <li>✅ All Standard benefits</li>
+                            <li>✅ Personal trainer</li>
+                            <li>✅ Dietitian consultation</li>
+                            <li>✅ Spa & sauna access</li>
+                            <li>✅ Priority booking</li>
+                        </ul>
+                        <button class="btn btn-gold" onclick="upgradePlan('PREMIUM')">Go Premium</button>
+                    </div>
+                </div>
+                <div id="membership-msg" class="auth-msg mt-2"></div>
+            </section>
+
+            <!-- ── PROGRESS ── -->
+            <section id="page-progress" class="page">
+                <div class="page-header">
+                    <h1>📈 Progress Tracker</h1>
+                    <p class="subtitle">Log your daily weight, calories & water intake</p>
+                </div>
+
+                <div class="progress-layout">
+                    <div class="card log-card">
+                        <div class="card-title">➕ Log Today's Progress</div>
+                        <form id="progress-form" onsubmit="handleProgressLog(event)">
+                            <div class="form-group">
+                                <label>Weight (kg)</label>
+                                <input type="number" id="pr-weight" placeholder="e.g. 70.5" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label>Calories Consumed</label>
+                                <input type="number" id="pr-calories" placeholder="e.g. 1800">
+                            </div>
+                            <div class="form-group">
+                                <label>Water Intake (ml)</label>
+                                <input type="number" id="pr-water" placeholder="e.g. 2000">
+                            </div>
+                            <div class="form-group">
+                                <label>Notes</label>
+                                <input type="text" id="pr-notes" placeholder="e.g. Felt great, did cardio">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full">Log Progress</button>
+                        </form>
+                        <div id="progress-msg" class="auth-msg mt-2"></div>
+                    </div>
+
+                    <div class="charts-panel">
+                        <div class="card">
+                            <div class="card-title">⚖️ Weight Progress</div>
+                            <canvas id="weight-chart" height="180"></canvas>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🔥 Calorie Intake</div>
+                            <canvas id="calorie-chart" height="180"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── ADMIN ── -->
+            <section id="page-admin" class="page">
+                <div class="page-header">
+                    <h1>🛡️ Admin Panel</h1>
+                    <p class="subtitle">Manage members and view gym statistics</p>
+                </div>
+
+                <div class="admin-stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-label">Total Members</div>
+                        <div class="stat-value" id="admin-total">—</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-label">Active Today</div>
+                        <div class="stat-value" id="admin-active">—</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-label">Est. Revenue</div>
+                        <div class="stat-value" id="admin-revenue">—</div>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-title">👥 All Members</div>
+                    <div class="table-wrap">
+                        <table class="members-table" id="members-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Joined</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="members-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-title">🔐 Admin Security Settings</div>
+                    <p class="subtitle mb-2">Update your administrator username and password</p>
+                    <form id="admin-security-form" onsubmit="handleAdminProfileUpdate(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>New Username (optional)</label>
+                                <input type="text" id="adm-new-username" placeholder="Leave blank to keep current">
+                            </div>
+                            <div class="form-group">
+                                <label>Current Password</label>
+                                <input type="password" id="adm-curr-password" placeholder="Verify current password"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label>New Password (optional)</label>
+                                <input type="password" id="adm-new-password" placeholder="Leave blank to keep current">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">Update Security Settings</button>
+                    </form>
+                    <div id="admin-security-msg" class="auth-msg mt-2"></div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

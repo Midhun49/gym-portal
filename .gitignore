@@ -1,0 +1,17 @@
+target/
+*.class
+*.jar
+*.war
+*.log
+*.tmp
+
+.idea/
+*.iml
+.vscode/
+
+compile.log
+compile_error.txt
+
+# OS
+.DS_Store
+Thumbs.db
