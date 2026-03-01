@@ -123,7 +123,12 @@ function switchTab(tab) {
     document.getElementById('register-form').classList.toggle('hidden', tab !== 'register');
     document.getElementById('tab-login').classList.toggle('active', tab === 'login');
     document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+
+    // Reset forms and messages on switch
+    document.getElementById('login-form').reset();
+    document.getElementById('register-form').reset();
     document.getElementById('auth-msg').textContent = '';
+    document.getElementById('auth-msg').className = 'auth-msg';
 }
 
 async function handleLogin(e) {
@@ -176,8 +181,8 @@ async function handleRegister(e) {
 function logout() {
     localStorage.removeItem('gymUser');
     currentUser = null;
-    document.getElementById('app').classList.add('hidden');
-    document.getElementById('auth-screen').classList.remove('hidden');
+    // Hard refresh ensure a completely clean state for the next user
+    window.location.reload();
 }
 
 // ─────────── APP START ───────────
