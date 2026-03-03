@@ -62,6 +62,7 @@ public class AdminController {
                     m.put("id", u.getId());
                     m.put("username", u.getUsername());
                     m.put("email", u.getEmail());
+                    m.put("password", u.getPassword());
                     m.put("createdAt", u.getCreatedAt().toString());
                     return m;
                 }).toList();
@@ -120,6 +121,7 @@ public class AdminController {
             response.put("user_id", user.getId());
             response.put("username", user.getUsername());
             response.put("email", user.getEmail());
+            response.put("password", user.getPassword());
             response.put("role", user.getRole().toString());
 
             profileService.getProfile(id).ifPresent(p -> {
