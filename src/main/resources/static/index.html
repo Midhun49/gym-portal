@@ -560,6 +560,87 @@
     <!-- Toast notification -->
     <div id="toast" class="toast hidden"></div>
 
+    <!-- ── MEMBER DETAILS MODAL ── -->
+    <div id="member-details-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>👤 Member Details</h2>
+                <button class="modal-close" onclick="closeMemberModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-section">
+                    <div class="section-title">Account Information</div>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <label>Username</label>
+                            <span id="md-username">—</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Email</label>
+                            <span id="md-email">—</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Hashed Password</label>
+                            <code id="md-password" class="password-code">—</code>
+                        </div>
+                        <div class="detail-item">
+                            <label>Joined Date</label>
+                            <span id="md-joined">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <div class="section-title">Physical Profile</div>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <label>Age</label>
+                            <span id="md-age">—</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Gender</label>
+                            <span id="md-gender">—</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Height</label>
+                            <span id="md-height">—</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Weight</label>
+                            <span id="md-weight">—</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>BMI</label>
+                            <span id="md-bmi" class="bmi-badge">—</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Goal</label>
+                            <span id="md-goal">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <div class="section-title">Membership & Activity</div>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <label>Current Plan</label>
+                            <span id="md-plan" class="plan-pill">—</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Status</label>
+                            <span id="md-status">—</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Diet Preference</label>
+                            <span id="md-diet">—</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 

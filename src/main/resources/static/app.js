@@ -647,6 +647,9 @@ async function loadAdmin() {
                     <td>${m.email}</td>
                     <td>${m.createdAt.split('T')[0]}</td>
                     <td>
+                        <button class="btn-view" onclick="viewMemberDetails(${m.id})">
+                            👁️ View
+                        </button>
                         <button class="btn btn-danger" onclick="deleteMember(${m.id}, '${m.username}')">
                             🗑 Remove
                         </button>
@@ -684,6 +687,58 @@ async function handleAdminProfileUpdate(e) {
     } catch (e) {
         showMsg(msg, 'Server error.', 'error');
     }
+}
+
+async function viewMemberDetails(id) {
+    try {
+        const res = await fetch(`${API}/api/admin/users/${id}/details`);
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('md-username').textContent = data.username;
+            document.getElementById('md-email').textContent = data.email;
+            document.getElementById('md-password').textContent = data.password || 'N/A';
+            document.getElementById('md-joined').textContent = data.createdAt ? data.createdAt.split('T')[0] : 'N/A';
+
+            if (data.profile) {
+                document.getElementById('md-age').textContent = data.profile.age || '—';
+                document.getElementById('md-gender').textContent = data.profile.gender || '—';
+                document.getElementById('md-height').textContent = `${data.profile.heightCm || '—'} cm`;
+                document.getElementById('md-weight').textContent = `${data.profile.weightKg || '—'} kg`;
+                document.getElementById('md-goal').textContent = data.profile.fitnessGoal || '—';
+                document.getElementById('md-diet').textContent = data.profile.dietType || '—';
+
+                if (data.profile.heightCm && data.profile.weightKg) {
+                    const h = data.profile.heightCm / 100;
+                    const bmi = (data.profile.weightKg / (h * h)).toFixed(1);
+                    document.getElementById('md-bmi').textContent = `${bmi} (${bmiCategory(bmi)})`;
+                } else {
+                    document.getElementById('md-bmi').textContent = '—';
+                }
+            } else {
+                ['md-age', 'md-gender', 'md-height', 'md-weight', 'md-goal', 'md-diet', 'md-bmi'].forEach(id => {
+                    document.getElementById(id).textContent = '—';
+                });
+            }
+
+            if (data.membership) {
+                document.getElementById('md-plan').textContent = data.membership.plan;
+                document.getElementById('md-status').textContent = data.membership.status;
+            } else {
+                document.getElementById('md-plan').textContent = 'NO PLAN';
+                document.getElementById('md-status').textContent = 'INACTIVE';
+            }
+
+            document.getElementById('member-details-modal').classList.remove('hidden');
+        } else {
+            showToast(data.message, 'error');
+        }
+    } catch (e) {
+        showToast('Error fetching user details', 'error');
+    }
+}
+
+function closeMemberModal() {
+    document.getElementById('member-details-modal').classList.add('hidden');
 }
 
 async function deleteMember(id, username) {
