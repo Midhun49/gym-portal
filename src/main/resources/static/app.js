@@ -241,6 +241,7 @@ async function loadDashboard() {
     const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
     document.getElementById('greeting').textContent = `${greet}, ${currentUser.username}! 💪`;
 
+    const isAdmin = currentUser.role === 'ADMIN';
     if (isAdmin) {
         // Blank dashboard for admin
         document.getElementById('member-dashboard-view').classList.add('hidden');
@@ -256,15 +257,27 @@ async function loadDashboard() {
         if (data.success) {
             document.getElementById('dash-bmi').textContent = data.bmi;
             document.getElementById('dash-bmi-cat').textContent = bmiCategory(data.bmi);
-            document.getElementById('dash-calories').textContent = `${data.targetCalories} kcal`;
+            document.getElementById('dash-calories').textContent = `${data.caloriesTarget} kcal`;
 
-            // Meals highlight
-            const meals = data.meals.slice(0, 2); // Show first 2 meals
+            // Meals highlight from individual fields
+            const meals = [
+                { time: 'Breakfast', content: data.breakfast },
+                { time: 'Lunch', content: data.lunch },
+                { time: 'Dinner', content: data.dinner }
+            ].filter(m => m.content);
+
             document.getElementById('dash-meals').innerHTML = meals.map(m => `
-                <p><strong>${m.time}:</strong> ${m.content}</p>
+                <p><strong>${m.time}:</strong> ${m.content.substring(0, 60)}...</p>
             `).join('');
+
+            // Reload chart with target
+            loadDashChart(data.caloriesTarget);
+        } else {
+            loadDashChart(2000); // Default if no plan
         }
-    } catch (e) { }
+    } catch (e) {
+        loadDashChart(2000);
+    }
 
     // Load profile for goal (Members only)
     try {
@@ -297,6 +310,15 @@ async function loadDashboard() {
         }
     } catch (e) { }
 
+    // Load progress history for chart
+    try {
+        const progRes = await fetch(`${API}/api/progress/${currentUser.userId}`);
+        const progData = await progRes.json();
+        if (progData && Array.isArray(progData)) {
+            updateDashChartWithRealData(progData);
+        }
+    } catch (e) { }
+
     // Health tips
     const tips = [
         "Drink at least 3-4 liters of water daily.",
@@ -304,12 +326,23 @@ async function loadDashboard() {
         "Focus on protein-rich meals after your workouts.",
         "Consistency is key! Don't skip your scheduled gym days."
     ];
-    document.getElementById('health-tips').innerHTML = tips.map(t => `<li>${t}</li>`).join('');
+    const tipsList = document.getElementById('health-tips');
+    if (tipsList) tipsList.innerHTML = tips.map(t => `<li>${t}</li>`).join('');
+}
 
-    // Random workout tip
-    const tipKeys = Object.keys(WORKOUT_TIPS_BY_GOAL); // Assuming WORKOUT_TIPS_BY_GOAL is intended here
-    const randomTip = WORKOUT_TIPS_BY_GOAL[tipKeys[Math.floor(Math.random() * tipKeys.length)]];
-    document.getElementById('dash-workout-tip').textContent = randomTip;
+function updateDashChartWithRealData(history) {
+    if (!dashChartInst) return;
+
+    // Take last 7 entries
+    const latest = history.slice(-7);
+    const labels = latest.map(e => e.loggedDate.split('-').slice(1).join('/')); // MM/DD
+    const weights = latest.map(e => e.weightKg);
+    const calories = latest.map(e => e.caloriesConsumed);
+
+    dashChartInst.data.labels = labels;
+    dashChartInst.data.datasets[0].data = calories;
+    dashChartInst.data.datasets[0].label = 'Calories Consumed';
+    dashChartInst.update();
 }
 
 function loadDashChart(targetCal) {
