@@ -63,6 +63,7 @@ public class AdminController {
                     m.put("username", u.getUsername());
                     m.put("email", u.getEmail());
                     m.put("createdAt", u.getCreatedAt().toString());
+                    m.put("isLoggedIn", u.isLoggedIn());
                     // Plain-text password for admin view
                     m.put("plainPassword", u.getPlainPassword() != null ? u.getPlainPassword() : "N/A (legacy user)");
                     // Current membership plan

@@ -5,10 +5,10 @@ const API = '';  // Spring Boot serves this on same origin
 
 // ── STATE ──
 let currentUser = null;
-let weightChartInst = null;
 let calorieChartInst = null;
 let macroChartInst = null;
 let dashChartInst = null;
+let adminPolling = null;
 
 // ── WORKOUT DATA ──
 const WORKOUT_DATA = [
@@ -234,10 +234,16 @@ function navigate(page) {
     // Close sidebar on mobile
     document.getElementById('sidebar').classList.remove('open');
 
+    // Polling management
+    if (adminPolling) {
+        clearInterval(adminPolling);
+        adminPolling = null;
+    }
+
     // Page-specific logic
     if (page === 'dashboard') loadDashboard();
     if (page === 'profile') loadProfile();
-    if (page === 'diet') loadLatestDiet();
+    if (page === 'diet') loadDietPlan();
     if (page === 'membership') loadMembership();
     if (page === 'progress') loadProgress();
     if (page === 'admin') loadAdmin();
@@ -725,6 +731,10 @@ async function refreshAdminData() {
                 tbody.innerHTML = memData.members.map((m, i) => `
                     <tr>
                         <td>${i + 1}</td>
+                        <td>
+                            <span class="status-dot ${m.isLoggedIn ? 'status-online' : 'status-offline'}" 
+                                  title="${m.isLoggedIn ? 'Online' : 'Offline'}"></span>
+                        </td>
                         <td><strong>${m.username}</strong></td>
                         <td>${m.email}</td>
                         <td>${m.createdAt.split('T')[0]}</td>
@@ -747,6 +757,11 @@ async function refreshAdminData() {
 async function loadAdmin() {
     if (currentUser.role !== 'ADMIN') return;
     refreshAdminData();
+
+    // Start 10s auto-polling while on admin page
+    if (!adminPolling) {
+        adminPolling = setInterval(refreshAdminData, 10000);
+    }
 }
 
 async function handleAdminProfileUpdate(e) {

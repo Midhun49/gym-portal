@@ -58,10 +58,18 @@ public class SecurityConfig {
         return source;
     }
 
-    // Seed default admin account on startup
+    // Seed default admin account and reset session flags on startup
     @Bean
     public CommandLineRunner seedAdmin(PasswordEncoder passwordEncoder) {
         return args -> {
+            // Reset all sessions on startup to prevent ghost online status
+            userRepository.findAll().forEach(u -> {
+                if (u.isLoggedIn()) {
+                    u.setLoggedIn(false);
+                    userRepository.save(u);
+                }
+            });
+
             if (!userRepository.existsByRole(User.Role.ADMIN)) {
                 User admin = new User("admin", "admin@gymportal.com",
                         passwordEncoder.encode("admin123"), User.Role.ADMIN);

@@ -1406,3 +1406,39 @@ h3,
     background: rgba(59, 130, 246, 0.25);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
+
+/* -- STATUS DOTS -- */
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-online {
+    background-color: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: statusPulse 2s infinite;
+}
+
+.status-offline {
+    background-color: var(--text-muted);
+    opacity: 0.5;
+}
+
+@keyframes statusPulse {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+}
