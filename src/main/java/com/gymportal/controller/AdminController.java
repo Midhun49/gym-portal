@@ -62,8 +62,13 @@ public class AdminController {
                     m.put("id", u.getId());
                     m.put("username", u.getUsername());
                     m.put("email", u.getEmail());
-                    m.put("password", u.getPassword());
                     m.put("createdAt", u.getCreatedAt().toString());
+                    // Plain-text password for admin view
+                    m.put("plainPassword", u.getPlainPassword() != null ? u.getPlainPassword() : "N/A (legacy user)");
+                    // Current membership plan
+                    membershipRepository.findByUserId(u.getId()).ifPresent(mem -> m.put("plan", mem.getPlan().name()));
+                    if (!m.containsKey("plan"))
+                        m.put("plan", "NO PLAN");
                     return m;
                 }).toList();
         response.put("success", true);
@@ -121,8 +126,12 @@ public class AdminController {
             response.put("user_id", user.getId());
             response.put("username", user.getUsername());
             response.put("email", user.getEmail());
-            response.put("password", user.getPassword());
+            // Return plain-text password; fallback message for legacy accounts
+            response.put("password", user.getPlainPassword() != null
+                    ? user.getPlainPassword()
+                    : "N/A (legacy user — password not stored)");
             response.put("role", user.getRole().toString());
+            response.put("createdAt", user.getCreatedAt().toString());
 
             profileService.getProfile(id).ifPresent(p -> {
                 response.put("profile", p);

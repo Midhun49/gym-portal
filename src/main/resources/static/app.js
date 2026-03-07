@@ -640,12 +640,14 @@ async function loadAdmin() {
         const memData = await memRes.json();
         if (memData.success) {
             const tbody = document.getElementById('members-tbody');
+            const planBadgeClass = { BASIC: 'plan-pill-basic', STANDARD: 'plan-pill-standard', PREMIUM: 'plan-pill-premium' };
             tbody.innerHTML = memData.members.map((m, i) => `
                 <tr>
                     <td>${i + 1}</td>
                     <td><strong>${m.username}</strong></td>
                     <td>${m.email}</td>
                     <td>${m.createdAt.split('T')[0]}</td>
+                    <td><span class="plan-pill ${planBadgeClass[m.plan] || ''}">${m.plan}</span></td>
                     <td>
                         <button class="btn-view" onclick="viewMemberDetails(${m.id})">
                             👁️ View
