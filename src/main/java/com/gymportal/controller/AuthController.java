@@ -46,6 +46,10 @@ public class AuthController {
         boolean valid = userService.authenticate(req.getUsername(), req.getPassword());
         if (valid) {
             User user = userService.findByUsername(req.getUsername()).get();
+
+            // Set session status
+            userService.setLoggedInStatus(user.getId(), true);
+
             response.put("success", true);
             response.put("userId", user.getId());
             response.put("username", user.getUsername());
@@ -58,5 +62,21 @@ public class AuthController {
             response.put("message", "Invalid username or password");
             return ResponseEntity.status(401).body(response);
         }
+    }
+
+    @Operation(summary = "Logout", description = "Clears user session status")
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, Object>> logout(@RequestBody Map<String, Long> req) {
+        Map<String, Object> response = new HashMap<>();
+        Long userId = req.get("userId");
+        if (userId != null) {
+            userService.setLoggedInStatus(userId, false);
+            response.put("success", true);
+            response.put("message", "Logged out successfully");
+            return ResponseEntity.ok(response);
+        }
+        response.put("success", false);
+        response.put("message", "UserId required");
+        return ResponseEntity.badRequest().body(response);
     }
 }

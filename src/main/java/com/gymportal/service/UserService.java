@@ -2,10 +2,11 @@ package com.gymportal.service;
 
 import com.gymportal.dto.RegisterRequest;
 import com.gymportal.entity.User;
-import com.gymportal.repository.UserRepository;
+import com.gymportal.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,6 +15,18 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private DietPlanRepository dietPlanRepository;
+
+    @Autowired
+    private ProgressRepository progressRepository;
+
+    @Autowired
+    private MemberProfileRepository profileRepository;
+
+    @Autowired
+    private MembershipRepository membershipRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -88,5 +101,24 @@ public class UserService {
         }
 
         userRepository.save(user);
+    }
+
+    public void setLoggedInStatus(Long userId, boolean status) {
+        userRepository.findById(userId).ifPresent(u -> {
+            u.setLoggedIn(status);
+            userRepository.save(u);
+        });
+    }
+
+    @Transactional
+    public void resetDatabase() {
+        // Clear all member-related data tables
+        dietPlanRepository.deleteAll();
+        progressRepository.deleteAll();
+        profileRepository.deleteAll();
+        membershipRepository.deleteAll();
+
+        // Delete all users except ADMIN
+        userRepository.deleteByRole(User.Role.MEMBER);
     }
 }

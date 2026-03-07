@@ -106,16 +106,14 @@ public class AdminController {
         }
     }
 
-    @Operation(summary = "Get dashboard stats", description = "Returns total member count, daily active count, and estimated revenue")
+    @Operation(summary = "Get dashboard stats", description = "Returns total member count, online count, and estimated revenue")
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getStats() {
         Map<String, Object> response = new HashMap<>();
 
         // Fetch real data from DB
-        long totalMembers = userRepository.count();
-        long activeMembers = membershipRepository.findAll().stream()
-                .filter(m -> m.getStatus() == Membership.Status.ACTIVE)
-                .count();
+        long totalMembers = userRepository.countByRole(User.Role.MEMBER);
+        long onlineNow = userRepository.countByIsLoggedInTrue();
 
         double revenue = membershipRepository.findAll().stream()
                 .filter(m -> m.getAmountPaid() != null)
@@ -124,9 +122,25 @@ public class AdminController {
 
         response.put("success", true);
         response.put("totalMembers", totalMembers);
-        response.put("activeToday", activeMembers);
+        response.put("onlineNow", onlineNow);
         response.put("revenue", revenue);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Reset database", description = "Clears all member data except admin accounts")
+    @PostMapping("/reset")
+    public ResponseEntity<Map<String, Object>> resetData() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            userService.resetDatabase();
+            response.put("success", true);
+            response.put("message", "Database reset successfully! All member data cleared.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Reset failed: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     @Operation(summary = "Get user details", description = "Returns full details including profile and membership for a given user ID")

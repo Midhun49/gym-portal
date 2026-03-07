@@ -185,11 +185,23 @@ async function handleRegister(e) {
     }
 }
 
-function logout() {
+async function logout() {
+    if (currentUser) {
+        try {
+            await fetch(`${API}/api/auth/logout`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: currentUser.userId })
+            });
+        } catch (e) { /* Ignore logout errors, proceed with client-side logout */ }
+    }
     localStorage.removeItem('gymUser');
     currentUser = null;
-    // Hard refresh ensure a completely clean state for the next user
-    window.location.reload();
+    showToast('Logged out successfully');
+    // Hide the app and show the auth screen
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('auth-screen').classList.remove('hidden');
+    switchTab('login'); // Ensure login tab is active
 }
 
 // ─────────── APP START ───────────
@@ -697,7 +709,7 @@ async function refreshAdminData() {
             const aRev = document.getElementById('admin-revenue');
 
             if (aTotal) aTotal.textContent = stats.totalMembers;
-            if (aActive) aActive.textContent = stats.activeToday;
+            if (aActive) aActive.textContent = stats.onlineNow;
             if (aRev) aRev.textContent = `₹${stats.revenue.toLocaleString('en-IN')}`;
         }
 
@@ -828,6 +840,27 @@ async function deleteMember(id, username) {
             loadAdmin();
         }
     } catch (e) { }
+}
+
+async function handleResetDatabase() {
+    const confirm1 = confirm("⚠️ WARNING: This will permanently delete ALL members, profiles, diets, memberships, and progress data. Only Admin accounts will remain.\n\nAre you sure you want to proceed?");
+    if (!confirm1) return;
+
+    const confirm2 = confirm("FINAL CONFIRMATION: Are you absolutely sure? This action is irreversible.");
+    if (!confirm2) return;
+
+    try {
+        const res = await fetch(`${API}/api/admin/reset`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            showToast("Database reset successful!", "success");
+            loadAdmin();
+        } else {
+            showToast(data.message, "error");
+        }
+    } catch (e) {
+        showToast("Server error during reset.", "error");
+    }
 }
 
 // ─────────── UTILITIES ───────────
