@@ -66,7 +66,11 @@ public class AdminController {
                     // Plain-text password for admin view
                     m.put("plainPassword", u.getPlainPassword() != null ? u.getPlainPassword() : "N/A (legacy user)");
                     // Current membership plan
-                    membershipRepository.findByUserId(u.getId()).ifPresent(mem -> m.put("plan", mem.getPlan().name()));
+                    membershipRepository.findByUserId(u.getId()).ifPresent(mem -> {
+                        if (mem.getPlan() != null) {
+                            m.put("plan", mem.getPlan().name());
+                        }
+                    });
                     if (!m.containsKey("plan"))
                         m.put("plan", "NO PLAN");
                     return m;
@@ -106,11 +110,22 @@ public class AdminController {
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getStats() {
         Map<String, Object> response = new HashMap<>();
-        long totalMembers = userService.getAllMembers().size();
+
+        // Fetch real data from DB
+        long totalMembers = userRepository.count();
+        long activeMembers = membershipRepository.findAll().stream()
+                .filter(m -> m.getStatus() == Membership.Status.ACTIVE)
+                .count();
+
+        double revenue = membershipRepository.findAll().stream()
+                .filter(m -> m.getAmountPaid() != null)
+                .mapToDouble(Membership::getAmountPaid)
+                .sum();
+
         response.put("success", true);
         response.put("totalMembers", totalMembers);
-        response.put("activeToday", totalMembers); // simplified
-        response.put("revenue", totalMembers * 999); // approx
+        response.put("activeToday", activeMembers);
+        response.put("revenue", revenue);
         return ResponseEntity.ok(response);
     }
 
