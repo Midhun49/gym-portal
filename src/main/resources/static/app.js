@@ -241,13 +241,11 @@ async function loadDashboard() {
     const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
     document.getElementById('greeting').textContent = `${greet}, ${currentUser.username}! 💪`;
 
-    // Role-based view toggle
-    const isAdmin = currentUser.role === 'ADMIN';
-    document.getElementById('member-dashboard-view').classList.toggle('hidden', isAdmin);
-    document.getElementById('admin-dashboard-view').classList.toggle('hidden', !isAdmin);
-
     if (isAdmin) {
-        refreshAdminData();
+        // Blank dashboard for admin
+        document.getElementById('member-dashboard-view').classList.add('hidden');
+        document.getElementById('admin-dashboard-view').classList.remove('hidden');
+        // We don't call refreshAdminData() here anymore to keep it blank
         return;
     }
 
@@ -665,22 +663,18 @@ function renderProgressCharts(entries) {
 // ─────────── ADMIN ───────────
 async function refreshAdminData() {
     try {
-        // Fetch stats
+        // Fetch stats (Only for Admin Panel page now)
         const statsRes = await fetch(`${API}/api/admin/stats`);
         const stats = await statsRes.json();
         if (stats.success) {
-            // Update admin panel page
-            document.getElementById('admin-total').textContent = stats.totalMembers;
-            document.getElementById('admin-active').textContent = stats.activeToday;
-            document.getElementById('admin-revenue').textContent = `₹${stats.revenue.toLocaleString('en-IN')}`;
+            // Update admin panel page stats
+            const aTotal = document.getElementById('admin-total');
+            const aActive = document.getElementById('admin-active');
+            const aRev = document.getElementById('admin-revenue');
 
-            // Update dashboard admin view if exists
-            const dTotal = document.getElementById('dash-admin-total');
-            if (dTotal) {
-                dTotal.textContent = stats.totalMembers;
-                document.getElementById('dash-admin-active').textContent = stats.activeToday;
-                document.getElementById('dash-admin-revenue').textContent = `₹${stats.revenue.toLocaleString('en-IN')}`;
-            }
+            if (aTotal) aTotal.textContent = stats.totalMembers;
+            if (aActive) aActive.textContent = stats.activeToday;
+            if (aRev) aRev.textContent = `₹${stats.revenue.toLocaleString('en-IN')}`;
         }
 
         // Fetch members list
@@ -689,24 +683,20 @@ async function refreshAdminData() {
         if (memData.success) {
             const planBadgeClass = { BASIC: 'plan-pill-basic', STANDARD: 'plan-pill-standard', PREMIUM: 'plan-pill-premium' };
 
-            // Update main admin table
+            // Update main admin table (No Action column)
             const tbody = document.getElementById('members-tbody');
             if (tbody) {
                 tbody.innerHTML = memData.members.map((m, i) => `
                     <tr>
                         <td>${i + 1}</td>
-                        <td><strong>${m.username}</strong></td>
+                        <td>
+                            <a href="#" class="member-link" onclick="viewMemberDetails(${m.id}); return false;">
+                                <strong>${m.username}</strong>
+                            </a>
+                        </td>
                         <td>${m.email}</td>
                         <td>${m.createdAt.split('T')[0]}</td>
                         <td><span class="plan-pill ${planBadgeClass[m.plan] || ''}">${m.plan}</span></td>
-                        <td>
-                            <button class="btn-view" onclick="viewMemberDetails(${m.id})">
-                                👁️ View
-                            </button>
-                            <button class="btn btn-danger" onclick="deleteMember(${m.id}, '${m.username}')">
-                                🗑 Remove
-                            </button>
-                        </td>
                     </tr>
                 `).join('');
             }
