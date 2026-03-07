@@ -137,68 +137,67 @@
                     <p class="subtitle" id="greeting">Welcome back!</p>
                 </div>
 
-                <div class="stats-grid">
-                    <div class="stat-card" id="stat-bmi">
-                        <div class="stat-icon">⚖️</div>
-                        <div class="stat-label">BMI</div>
-                        <div class="stat-value" id="dash-bmi">—</div>
-                        <div class="stat-badge" id="dash-bmi-cat">—</div>
-                    </div>
-                    <!-- Member-specific cards -->
-                    <div id="member-dashboard-view">
-                        <div class="stats-grid">
-                            <div class="stat-card">
-                                <div class="stat-icon">🔥</div>
-                                <div class="stat-label">Daily Calories</div>
-                                <div class="stat-value" id="dash-calories">—</div>
-                                <div class="stat-badge">Target</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon">⭐</div>
-                                <div class="stat-label">Membership</div>
-                                <div class="stat-value" id="dash-plan">—</div>
-                                <div class="stat-badge" id="dash-plan-status">Active</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon">🎯</div>
-                                <div class="stat-label">Fitness Goal</div>
-                                <div class="stat-value" id="dash-goal">—</div>
-                                <div class="stat-badge">Current</div>
-                            </div>
+                <!-- Member-specific cards -->
+                <div id="member-dashboard-view">
+                    <div class="stats-grid">
+                        <div class="stat-card" id="stat-bmi">
+                            <div class="stat-icon">⚖️</div>
+                            <div class="stat-label">BMI</div>
+                            <div class="stat-value" id="dash-bmi">—</div>
+                            <div class="stat-badge" id="dash-bmi-cat">—</div>
                         </div>
-
-                        <div class="dashboard-grid">
-                            <div class="card">
-                                <div class="card-title">🥗 Today's Meal Highlights</div>
-                                <div id="dash-meals" class="meal-preview">
-                                    <p class="muted">Generate your AI diet plan to see today's meals here.</p>
-                                </div>
-                                <button class="btn btn-accent mt-2" onclick="navigate('diet')">View Full Plan →</button>
-                            </div>
-                            <div class="card">
-                                <div class="card-title">🏋️ Quick Workout Tip</div>
-                                <div id="dash-workout-tip" class="workout-tip"></div>
-                                <button class="btn btn-outline mt-2" onclick="navigate('workout')">View Workouts
-                                    →</button>
-                            </div>
-                            <div class="card">
-                                <div class="card-title">📈 Progress Summary</div>
-                                <canvas id="dash-chart" height="120"></canvas>
-                            </div>
-                            <div class="card">
-                                <div class="card-title">💡 Health Tips</div>
-                                <ul class="tip-list" id="health-tips"></ul>
-                            </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🔥</div>
+                            <div class="stat-label">Daily Calories</div>
+                            <div class="stat-value" id="dash-calories">—</div>
+                            <div class="stat-badge">Target</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⭐</div>
+                            <div class="stat-label">Membership</div>
+                            <div class="stat-value" id="dash-plan">—</div>
+                            <div class="stat-badge" id="dash-plan-status">Active</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🎯</div>
+                            <div class="stat-label">Fitness Goal</div>
+                            <div class="stat-value" id="dash-goal">—</div>
+                            <div class="stat-badge">Current</div>
                         </div>
                     </div>
 
-                    <!-- Admin-specific Dashboard View -->
-                    <div id="admin-dashboard-view" class="hidden">
-                        <div class="flex-center mt-3">
-                            <button class="btn btn-primary btn-lg" onclick="navigate('admin')">Go to Admin Panel
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <div class="card-title">🥗 Today's Meal Highlights</div>
+                            <div id="dash-meals" class="meal-preview">
+                                <p class="muted">Generate your AI diet plan to see today's meals here.</p>
+                            </div>
+                            <button class="btn btn-accent mt-2" onclick="navigate('diet')">View Full Plan →</button>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🏋️ Quick Workout Tip</div>
+                            <div id="dash-workout-tip" class="workout-tip"></div>
+                            <button class="btn btn-outline mt-2" onclick="navigate('workout')">View Workouts
                                 →</button>
                         </div>
+                        <div class="card">
+                            <div class="card-title">📈 Progress Summary</div>
+                            <canvas id="dash-chart" height="120"></canvas>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">💡 Health Tips</div>
+                            <ul class="tip-list" id="health-tips"></ul>
+                        </div>
                     </div>
+                </div>
+
+                <!-- Admin-specific Dashboard View -->
+                <div id="admin-dashboard-view" class="hidden">
+                    <div class="flex-center mt-3">
+                        <button class="btn btn-primary btn-lg" onclick="navigate('admin')">Go to Admin Panel
+                            →</button>
+                    </div>
+                </div>
             </section>
 
             <!-- ── PROFILE ── -->
