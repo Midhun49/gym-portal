@@ -259,13 +259,30 @@ async function loadDashboard() {
             document.getElementById('dash-bmi').textContent = data.bmi;
             document.getElementById('dash-bmi-cat').textContent = bmiCategory(data.bmi);
             document.getElementById('dash-calories').textContent = `${data.targetCalories} kcal`;
-            document.getElementById('dash-goal').textContent = data.goal.replace('_', ' ');
 
             // Meals highlight
             const meals = data.meals.slice(0, 2); // Show first 2 meals
             document.getElementById('dash-meals').innerHTML = meals.map(m => `
                 <p><strong>${m.time}:</strong> ${m.content}</p>
             `).join('');
+        }
+    } catch (e) { }
+
+    // Load profile for goal (Members only)
+    try {
+        const profRes = await fetch(`${API}/api/profile/${currentUser.userId}`);
+        const profData = await profRes.json();
+        if (profData.success && profData.fitnessGoal) {
+            const goalLabel = profData.fitnessGoal.replace('_', ' ');
+            document.getElementById('dash-goal').textContent = goalLabel;
+
+            // Random workout tip based on goal
+            const tipKeys = Object.keys(WORKOUT_TIPS_BY_GOAL);
+            const randomTip = WORKOUT_TIPS_BY_GOAL[profData.fitnessGoal] || WORKOUT_TIPS_BY_GOAL[tipKeys[Math.floor(Math.random() * tipKeys.length)]];
+            document.getElementById('dash-workout-tip').textContent = randomTip;
+        } else {
+            document.getElementById('dash-goal').textContent = 'NOT SET';
+            document.getElementById('dash-workout-tip').textContent = 'Set your fitness goal in Profile to see tips!';
         }
     } catch (e) { }
 
@@ -690,21 +707,6 @@ async function refreshAdminData() {
                                 🗑 Remove
                             </button>
                         </td>
-                    </tr>
-                `).join('');
-            }
-
-            // Update dashboard quick-view table if exists
-            const dTable = document.getElementById('dash-admin-members-tbody');
-            if (dTable) {
-                // Show latest 5 members
-                const recent = [...memData.members].reverse().slice(0, 5);
-                dTable.innerHTML = recent.map(m => `
-                    <tr>
-                        <td><strong>${m.username}</strong></td>
-                        <td>${m.email}</td>
-                        <td>${m.createdAt.split('T')[0]}</td>
-                        <td><span class="plan-pill ${planBadgeClass[m.plan] || ''}">${m.plan}</span></td>
                     </tr>
                 `).join('');
             }
