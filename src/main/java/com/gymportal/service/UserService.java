@@ -22,6 +22,9 @@ public class UserService {
     private MembershipService membershipService;
 
     public User register(RegisterRequest req) {
+        if (req.getEmail() == null || !req.getEmail().toLowerCase().endsWith("@gmail.com")) {
+            throw new RuntimeException("Only Gmail addresses (@gmail.com) are allowed for registration");
+        }
         if (userRepository.existsByUsername(req.getUsername())) {
             throw new RuntimeException("Username already taken");
         }

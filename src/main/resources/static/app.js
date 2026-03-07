@@ -161,6 +161,13 @@ async function handleRegister(e) {
     const email = document.getElementById('reg-email').value;
     const password = document.getElementById('reg-password').value;
     const msg = document.getElementById('auth-msg');
+
+    // Enforce Gmail-only registration
+    if (!email.toLowerCase().endsWith('@gmail.com')) {
+        showMsg(msg, '❌ Only Gmail addresses (@gmail.com) are accepted. Please use a Gmail account.', 'error');
+        return;
+    }
+
     try {
         const res = await fetch(`${API}/api/auth/register`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
