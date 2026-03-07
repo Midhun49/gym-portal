@@ -241,13 +241,10 @@ async function loadDashboard() {
     const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
     document.getElementById('greeting').textContent = `${greet}, ${currentUser.username}! 💪`;
 
+    // Role-based view toggle (Restored)
     const isAdmin = currentUser.role === 'ADMIN';
     if (isAdmin) {
-        // Blank dashboard for admin
-        document.getElementById('member-dashboard-view').classList.add('hidden');
-        document.getElementById('admin-dashboard-view').classList.remove('hidden');
-        // We don't call refreshAdminData() here anymore to keep it blank
-        return;
+        refreshAdminData();
     }
 
     // Load diet plan for dashboard (Members only)
@@ -311,15 +308,9 @@ async function loadDashboard() {
     } catch (e) { }
 
     // Load progress history for chart
-    try {
-        const progRes = await fetch(`${API}/api/progress/${currentUser.userId}`);
-        const progData = await progRes.json();
-        if (progData && Array.isArray(progData)) {
-            updateDashChartWithRealData(progData);
-        }
-    } catch (e) { }
+    loadDashChart(2000);
 
-    // Health tips
+    // Health tips (Restored)
     const tips = [
         "Drink at least 3-4 liters of water daily.",
         "Ensure 7-8 hours of quality sleep for muscle recovery.",
@@ -336,7 +327,6 @@ function updateDashChartWithRealData(history) {
     // Take last 7 entries
     const latest = history.slice(-7);
     const labels = latest.map(e => e.loggedDate.split('-').slice(1).join('/')); // MM/DD
-    const weights = latest.map(e => e.weightKg);
     const calories = latest.map(e => e.caloriesConsumed);
 
     dashChartInst.data.labels = labels;
@@ -348,6 +338,7 @@ function updateDashChartWithRealData(history) {
 function loadDashChart(targetCal) {
     const ctx = document.getElementById('dash-chart').getContext('2d');
     if (dashChartInst) dashChartInst.destroy();
+    // Original random data logic
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const data = days.map(() => Math.round(targetCal * (0.85 + Math.random() * 0.3)));
     dashChartInst = new Chart(ctx, {
@@ -716,20 +707,24 @@ async function refreshAdminData() {
         if (memData.success) {
             const planBadgeClass = { BASIC: 'plan-pill-basic', STANDARD: 'plan-pill-standard', PREMIUM: 'plan-pill-premium' };
 
-            // Update main admin table (No Action column)
+            // Update main admin table
             const tbody = document.getElementById('members-tbody');
             if (tbody) {
                 tbody.innerHTML = memData.members.map((m, i) => `
                     <tr>
                         <td>${i + 1}</td>
-                        <td>
-                            <a href="#" class="member-link" onclick="viewMemberDetails(${m.id}); return false;">
-                                <strong>${m.username}</strong>
-                            </a>
-                        </td>
+                        <td><strong>${m.username}</strong></td>
                         <td>${m.email}</td>
                         <td>${m.createdAt.split('T')[0]}</td>
                         <td><span class="plan-pill ${planBadgeClass[m.plan] || ''}">${m.plan}</span></td>
+                        <td>
+                            <button class="btn btn-view" onclick="viewMemberDetails(${m.id})">
+                                👁️ View
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteMember(${m.id}, '${m.username}')">
+                                🗑 Remove
+                            </button>
+                        </td>
                     </tr>
                 `).join('');
             }
