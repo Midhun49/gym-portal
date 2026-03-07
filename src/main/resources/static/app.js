@@ -525,6 +525,12 @@ async function loadMembership() {
             document.querySelectorAll('.plan-card').forEach(c => c.style.boxShadow = '');
             const active = document.getElementById(`plan-${data.plan}`);
             if (active) active.style.boxShadow = '0 0 0 2px #f59e0b';
+        } else {
+            document.getElementById('mem-plan-badge').textContent = 'NO ACTIVE PLAN';
+            document.getElementById('mem-end-date').textContent = '—';
+            document.getElementById('mem-status').textContent = 'INACTIVE';
+            document.getElementById('mem-price').textContent = '₹0';
+            document.querySelectorAll('.plan-card').forEach(c => c.style.boxShadow = '');
         }
     } catch (e) { }
 }

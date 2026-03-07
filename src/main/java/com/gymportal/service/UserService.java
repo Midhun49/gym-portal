@@ -18,9 +18,6 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private MembershipService membershipService;
-
     public User register(RegisterRequest req) {
         if (req.getEmail() == null || !req.getEmail().toLowerCase().endsWith("@gmail.com")) {
             throw new RuntimeException("Only Gmail addresses (@gmail.com) are allowed for registration");
@@ -38,8 +35,6 @@ public class UserService {
                 User.Role.MEMBER);
         user.setPlainPassword(req.getPassword());
         User saved = userRepository.save(user);
-        // Auto-create BASIC membership
-        membershipService.createDefaultMembership(saved);
         return saved;
     }
 
