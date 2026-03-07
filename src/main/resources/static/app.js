@@ -241,52 +241,60 @@ async function loadDashboard() {
     const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
     document.getElementById('greeting').textContent = `${greet}, ${currentUser.username}! 💪`;
 
-    // Load diet plan for dashboard
+    // Role-based view toggle
+    const isAdmin = currentUser.role === 'ADMIN';
+    document.getElementById('member-dashboard-view').classList.toggle('hidden', isAdmin);
+    document.getElementById('admin-dashboard-view').classList.toggle('hidden', !isAdmin);
+
+    if (isAdmin) {
+        refreshAdminData();
+        return;
+    }
+
+    // Load diet plan for dashboard (Members only)
     try {
         const res = await fetch(`${API}/api/diet/latest/${currentUser.userId}`);
         const data = await res.json();
         if (data.success) {
             document.getElementById('dash-bmi').textContent = data.bmi;
             document.getElementById('dash-bmi-cat').textContent = bmiCategory(data.bmi);
-            document.getElementById('dash-calories').textContent = `${data.caloriesTarget} kcal`;
+            document.getElementById('dash-calories').textContent = `${data.targetCalories} kcal`;
+            document.getElementById('dash-goal').textContent = data.goal.replace('_', ' ');
 
-            document.getElementById('dash-meals').innerHTML = `
-                <p>🌅 <strong>Breakfast:</strong> ${data.breakfast.split('(')[0].trim()}</p>
-                <p>🍛 <strong>Lunch:</strong> ${data.lunch.split('(')[0].trim()}</p>
-                <p>🌙 <strong>Dinner:</strong> ${data.dinner.split('(')[0].trim()}</p>
-            `;
-
-            // Mini progress chart
-            loadDashChart(data.caloriesTarget);
+            // Meals highlight
+            const meals = data.meals.slice(0, 2); // Show first 2 meals
+            document.getElementById('dash-meals').innerHTML = meals.map(m => `
+                <p><strong>${m.time}:</strong> ${m.content}</p>
+            `).join('');
         }
     } catch (e) { }
 
-    // Membership
+    // Load membership for dashboard (Members only)
     try {
-        const res = await fetch(`${API}/api/membership/${currentUser.userId}`);
-        const data = await res.json();
-        if (data.success) {
-            document.getElementById('dash-plan').textContent = data.plan;
-            document.getElementById('dash-plan-status').textContent = data.status;
+        const memRes = await fetch(`${API}/api/membership/${currentUser.userId}`);
+        const memData = await memRes.json();
+        if (memData.success) {
+            document.getElementById('dash-plan').textContent = memData.plan;
+            document.getElementById('dash-plan-status').textContent = memData.status;
+        } else {
+            document.getElementById('dash-plan').textContent = 'NO PLAN';
+            document.getElementById('dash-plan-status').textContent = 'INACTIVE';
         }
     } catch (e) { }
-
-    // Profile goal
-    try {
-        const res = await fetch(`${API}/api/profile/${currentUser.userId}`);
-        const data = await res.json();
-        if (data.success && data.fitnessGoal) {
-            const goalMap = { LOSE_WEIGHT: 'Lose Weight', GAIN_MUSCLE: 'Gain Muscle', MAINTAIN: 'Maintain', IMPROVE_ENDURANCE: 'Endurance' };
-            document.getElementById('dash-goal').textContent = goalMap[data.fitnessGoal] || data.fitnessGoal;
-            document.getElementById('dash-workout-tip').textContent = WORKOUT_TIPS_BY_GOAL[data.fitnessGoal] || WORKOUT_TIPS_BY_GOAL.MAINTAIN;
-        }
-    } catch (e) {
-        document.getElementById('dash-workout-tip').textContent = '👈 Set your fitness goal in My Profile to see personalised tips.';
-    }
 
     // Health tips
-    const shuffled = [...HEALTH_TIPS].sort(() => Math.random() - 0.5).slice(0, 4);
-    document.getElementById('health-tips').innerHTML = shuffled.map(t => `<li>${t}</li>`).join('');
+    const tips = [
+        "Drink at least 3-4 liters of water daily.",
+        "Ensure 7-8 hours of quality sleep for muscle recovery.",
+        "Focus on protein-rich meals after your workouts.",
+        "Consistency is key! Don't skip your scheduled gym days."
+    ];
+    document.getElementById('health-tips').innerHTML = tips.map(t => `<li>${t}</li>`).join('');
+
+    // Random workout tip
+    const tipKeys = Object.keys(WORKOUT_TIPS_BY_GOAL); // Assuming WORKOUT_TIPS_BY_GOAL is intended here
+    const randomTip = WORKOUT_TIPS_BY_GOAL[tipKeys[Math.floor(Math.random() * tipKeys.length)]];
+    document.getElementById('dash-workout-tip').textContent = randomTip;
 }
 
 function loadDashChart(targetCal) {
@@ -638,41 +646,75 @@ function renderProgressCharts(entries) {
 }
 
 // ─────────── ADMIN ───────────
-async function loadAdmin() {
-    if (currentUser.role !== 'ADMIN') return;
+async function refreshAdminData() {
     try {
+        // Fetch stats
         const statsRes = await fetch(`${API}/api/admin/stats`);
         const stats = await statsRes.json();
         if (stats.success) {
+            // Update admin panel page
             document.getElementById('admin-total').textContent = stats.totalMembers;
             document.getElementById('admin-active').textContent = stats.activeToday;
             document.getElementById('admin-revenue').textContent = `₹${stats.revenue.toLocaleString('en-IN')}`;
+
+            // Update dashboard admin view if exists
+            const dTotal = document.getElementById('dash-admin-total');
+            if (dTotal) {
+                dTotal.textContent = stats.totalMembers;
+                document.getElementById('dash-admin-active').textContent = stats.activeToday;
+                document.getElementById('dash-admin-revenue').textContent = `₹${stats.revenue.toLocaleString('en-IN')}`;
+            }
         }
 
+        // Fetch members list
         const memRes = await fetch(`${API}/api/admin/members`);
         const memData = await memRes.json();
         if (memData.success) {
-            const tbody = document.getElementById('members-tbody');
             const planBadgeClass = { BASIC: 'plan-pill-basic', STANDARD: 'plan-pill-standard', PREMIUM: 'plan-pill-premium' };
-            tbody.innerHTML = memData.members.map((m, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td><strong>${m.username}</strong></td>
-                    <td>${m.email}</td>
-                    <td>${m.createdAt.split('T')[0]}</td>
-                    <td><span class="plan-pill ${planBadgeClass[m.plan] || ''}">${m.plan}</span></td>
-                    <td>
-                        <button class="btn-view" onclick="viewMemberDetails(${m.id})">
-                            👁️ View
-                        </button>
-                        <button class="btn btn-danger" onclick="deleteMember(${m.id}, '${m.username}')">
-                            🗑 Remove
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+
+            // Update main admin table
+            const tbody = document.getElementById('members-tbody');
+            if (tbody) {
+                tbody.innerHTML = memData.members.map((m, i) => `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td><strong>${m.username}</strong></td>
+                        <td>${m.email}</td>
+                        <td>${m.createdAt.split('T')[0]}</td>
+                        <td><span class="plan-pill ${planBadgeClass[m.plan] || ''}">${m.plan}</span></td>
+                        <td>
+                            <button class="btn-view" onclick="viewMemberDetails(${m.id})">
+                                👁️ View
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteMember(${m.id}, '${m.username}')">
+                                🗑 Remove
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            // Update dashboard quick-view table if exists
+            const dTable = document.getElementById('dash-admin-members-tbody');
+            if (dTable) {
+                // Show latest 5 members
+                const recent = [...memData.members].reverse().slice(0, 5);
+                dTable.innerHTML = recent.map(m => `
+                    <tr>
+                        <td><strong>${m.username}</strong></td>
+                        <td>${m.email}</td>
+                        <td>${m.createdAt.split('T')[0]}</td>
+                        <td><span class="plan-pill ${planBadgeClass[m.plan] || ''}">${m.plan}</span></td>
+                    </tr>
+                `).join('');
+            }
         }
-    } catch (e) { }
+    } catch (e) { console.error('Admin data refresh failed', e); }
+}
+
+async function loadAdmin() {
+    if (currentUser.role !== 'ADMIN') return;
+    refreshAdminData();
 }
 
 async function handleAdminProfileUpdate(e) {

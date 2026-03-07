@@ -144,48 +144,93 @@
                         <div class="stat-value" id="dash-bmi">—</div>
                         <div class="stat-badge" id="dash-bmi-cat">—</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🔥</div>
-                        <div class="stat-label">Daily Calories</div>
-                        <div class="stat-value" id="dash-calories">—</div>
-                        <div class="stat-badge">Target</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">⭐</div>
-                        <div class="stat-label">Membership</div>
-                        <div class="stat-value" id="dash-plan">—</div>
-                        <div class="stat-badge" id="dash-plan-status">Active</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🎯</div>
-                        <div class="stat-label">Fitness Goal</div>
-                        <div class="stat-value" id="dash-goal">—</div>
-                        <div class="stat-badge">Current</div>
-                    </div>
-                </div>
-
-                <div class="dashboard-grid">
-                    <div class="card">
-                        <div class="card-title">🥗 Today's Meal Highlights</div>
-                        <div id="dash-meals" class="meal-preview">
-                            <p class="muted">Generate your AI diet plan to see today's meals here.</p>
+                    <!-- Member-specific cards -->
+                    <div id="member-dashboard-view">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">🔥</div>
+                                <div class="stat-label">Daily Calories</div>
+                                <div class="stat-value" id="dash-calories">—</div>
+                                <div class="stat-badge">Target</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">⭐</div>
+                                <div class="stat-label">Membership</div>
+                                <div class="stat-value" id="dash-plan">—</div>
+                                <div class="stat-badge" id="dash-plan-status">Active</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">🎯</div>
+                                <div class="stat-label">Fitness Goal</div>
+                                <div class="stat-value" id="dash-goal">—</div>
+                                <div class="stat-badge">Current</div>
+                            </div>
                         </div>
-                        <button class="btn btn-accent mt-2" onclick="navigate('diet')">View Full Plan →</button>
+
+                        <div class="dashboard-grid">
+                            <div class="card">
+                                <div class="card-title">🥗 Today's Meal Highlights</div>
+                                <div id="dash-meals" class="meal-preview">
+                                    <p class="muted">Generate your AI diet plan to see today's meals here.</p>
+                                </div>
+                                <button class="btn btn-accent mt-2" onclick="navigate('diet')">View Full Plan →</button>
+                            </div>
+                            <div class="card">
+                                <div class="card-title">🏋️ Quick Workout Tip</div>
+                                <div id="dash-workout-tip" class="workout-tip"></div>
+                                <button class="btn btn-outline mt-2" onclick="navigate('workout')">View Workouts
+                                    →</button>
+                            </div>
+                            <div class="card">
+                                <div class="card-title">📈 Progress Summary</div>
+                                <canvas id="dash-chart" height="120"></canvas>
+                            </div>
+                            <div class="card">
+                                <div class="card-title">💡 Health Tips</div>
+                                <ul class="tip-list" id="health-tips"></ul>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card">
-                        <div class="card-title">🏋️ Quick Workout Tip</div>
-                        <div id="dash-workout-tip" class="workout-tip"></div>
-                        <button class="btn btn-outline mt-2" onclick="navigate('workout')">View Workouts →</button>
+
+                    <!-- Admin-specific Dashboard View -->
+                    <div id="admin-dashboard-view" class="hidden">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">👥</div>
+                                <div class="stat-label">Total Members</div>
+                                <div class="stat-value" id="dash-admin-total">—</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">✅</div>
+                                <div class="stat-label">Active Today</div>
+                                <div class="stat-value" id="dash-admin-active">—</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">💰</div>
+                                <div class="stat-label">Est. Revenue</div>
+                                <div class="stat-value" id="dash-admin-revenue">—</div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-3">
+                            <div class="card-title">👥 Recent Members Quick-View</div>
+                            <div class="table-wrap">
+                                <table class="members-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Username</th>
+                                            <th>Email</th>
+                                            <th>Joined</th>
+                                            <th>Plan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dash-admin-members-tbody"></tbody>
+                                </table>
+                            </div>
+                            <button class="btn btn-primary mt-2" onclick="navigate('admin')">Manage All Members
+                                →</button>
+                        </div>
                     </div>
-                    <div class="card">
-                        <div class="card-title">📈 Progress Summary</div>
-                        <canvas id="dash-chart" height="120"></canvas>
-                    </div>
-                    <div class="card">
-                        <div class="card-title">💡 Health Tips</div>
-                        <ul class="tip-list" id="health-tips"></ul>
-                    </div>
-                </div>
             </section>
 
             <!-- ── PROFILE ── -->
