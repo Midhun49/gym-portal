@@ -197,6 +197,10 @@ async function logout() {
     }
     localStorage.removeItem('gymUser');
     currentUser = null;
+
+    // Hide admin-only elements on logout
+    document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+
     showToast('Logged out successfully');
     // Hide the app and show the auth screen
     document.getElementById('app').classList.add('hidden');
@@ -211,6 +215,9 @@ function startApp() {
 
     document.getElementById('sidebar-username').textContent = currentUser.username;
     document.getElementById('sidebar-role').textContent = currentUser.role;
+
+    // Reset visibility before checking role
+    document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
 
     if (currentUser.role === 'ADMIN') {
         document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
