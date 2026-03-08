@@ -654,24 +654,73 @@ async function loadMembership() {
     } catch (e) { }
 }
 
+let selectedPlanForUpgrade = null;
+
 async function upgradePlan(plan) {
-    const msg = document.getElementById('membership-msg');
-    try {
-        const res = await fetch(`${API}/api/membership/${currentUser.userId}/upgrade`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ plan })
-        });
-        const data = await res.json();
-        if (data.success) {
-            showMsg(msg, `✅ ${data.message}`, 'success');
-            showToast(data.message, 'success');
-            loadMembership();
-        } else {
-            showMsg(msg, data.message, 'error');
-        }
-    } catch (e) {
-        showMsg(msg, 'Server error.', 'error');
+    selectedPlanForUpgrade = plan;
+    const planName = plan.charAt(0) + plan.slice(1).toLowerCase();
+    const prices = { BASIC: 999, STANDARD: 1999, PREMIUM: 3499 };
+
+    document.getElementById('pay-plan-name').textContent = planName;
+    document.getElementById('pay-amount').textContent = `₹${prices[plan].toLocaleString('en-IN')}`;
+    document.getElementById('payment-modal').classList.remove('hidden');
+}
+
+function closePaymentModal() {
+    document.getElementById('payment-modal').classList.add('hidden');
+    document.getElementById('payment-processing').classList.add('hidden');
+    document.getElementById('pay-now-btn').classList.remove('hidden');
+    selectedPlanForUpgrade = null;
+}
+
+function togglePayMethod() {
+    const method = document.querySelector('input[name="pay-method"]:checked').value;
+    const cardForm = document.getElementById('card-details-form');
+    const upiForm = document.getElementById('upi-details-form');
+
+    if (method === 'card') {
+        cardForm.classList.remove('hidden');
+        upiForm.classList.add('hidden');
+    } else {
+        cardForm.classList.add('hidden');
+        upiForm.classList.remove('hidden');
     }
+}
+
+async function processPayment() {
+    const btn = document.getElementById('pay-now-btn');
+    const processing = document.getElementById('payment-processing');
+    const msg = document.getElementById('membership-msg');
+
+    btn.classList.add('hidden');
+    processing.classList.remove('hidden');
+
+    // Simulate payment processing delay (2 seconds)
+    setTimeout(async () => {
+        try {
+            const res = await fetch(`${API}/api/membership/${currentUser.userId}/upgrade`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plan: selectedPlanForUpgrade })
+            });
+            const data = await res.json();
+
+            processing.classList.add('hidden');
+            closePaymentModal();
+
+            if (data.success) {
+                showMsg(msg, `✅ ${data.message}`, 'success');
+                showToast('Payment Successful! Membership upgraded. ✨', 'success');
+                loadMembership();
+            } else {
+                showMsg(msg, data.message, 'error');
+                showToast(data.message, 'error');
+            }
+        } catch (e) {
+            processing.classList.add('hidden');
+            btn.classList.remove('hidden');
+            showMsg(msg, 'Server error during payment.', 'error');
+        }
+    }, 2000);
 }
 
 // ─────────── PROGRESS ───────────

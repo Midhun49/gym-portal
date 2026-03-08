@@ -46,8 +46,15 @@ public class MembershipController {
             @RequestBody Map<String, String> body) {
         Map<String, Object> response = new HashMap<>();
         try {
-            Membership.Plan plan = Membership.Plan.valueOf(body.get("plan"));
+            String planStr = body.get("plan");
+            String paymentMethod = body.getOrDefault("paymentMethod", "UNSPECIFIED");
+
+            Membership.Plan plan = Membership.Plan.valueOf(planStr);
             Membership m = membershipService.upgradeMembership(userId, plan);
+
+            // Log payment (simulated)
+            System.out.println("Payment processed for user " + userId + " via " + paymentMethod + " for plan " + plan);
+
             response.put("success", true);
             response.put("message", "Membership upgraded to " + plan + "!");
             response.put("plan", m.getPlan());

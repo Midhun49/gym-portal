@@ -668,6 +668,83 @@
         </div>
     </div>
 
+    <!-- ── PAYMENT MODAL ── -->
+    <div id="payment-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <h2>💳 Secure Payment</h2>
+                <button class="modal-close" onclick="closePaymentModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="card"
+                    style="background: var(--bg-dark); border-color: var(--accent); margin-bottom: 1.5rem;">
+                    <div class="flex-between">
+                        <span class="muted">Selected Plan</span>
+                        <strong id="pay-plan-name" style="color: var(--accent);">—</strong>
+                    </div>
+                    <div class="flex-between mt-2">
+                        <span class="muted">Amount to Pay</span>
+                        <h2 id="pay-amount" style="margin:0">₹0</h2>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <div class="section-title">Select Payment Method</div>
+                    <div class="payment-methods">
+                        <label class="pay-method-opt">
+                            <input type="radio" name="pay-method" value="card" checked onchange="togglePayMethod()">
+                            <span class="pay-box">
+                                <span class="pay-icon">💳</span>
+                                <span class="pay-label">Credit/Debit Card</span>
+                            </span>
+                        </label>
+                        <label class="pay-method-opt">
+                            <input type="radio" name="pay-method" value="upi" onchange="togglePayMethod()">
+                            <span class="pay-box">
+                                <span class="pay-icon">📱</span>
+                                <span class="pay-label">UPI (GPay/PhonePe)</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="card-details-form" class="modal-section">
+                    <div class="form-group">
+                        <label>Card Number</label>
+                        <input type="text" id="pay-card-num" placeholder="XXXX XXXX XXXX XXXX" maxlength="19">
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Expiry Date</label>
+                            <input type="text" id="pay-card-expiry" placeholder="MM/YY" maxlength="5">
+                        </div>
+                        <div class="form-group">
+                            <label>CVV</label>
+                            <input type="password" id="pay-card-cvv" placeholder="***" maxlength="3">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="upi-details-form" class="modal-section hidden">
+                    <div class="form-group">
+                        <label>UPI ID</label>
+                        <input type="text" id="pay-upi-id" placeholder="username@upi">
+                    </div>
+                    <p class="muted">You will receive a request on your UPI app.</p>
+                </div>
+
+                <div id="payment-processing" class="loading-state hidden" style="padding: 1rem;">
+                    <div class="spinner"></div>
+                    <p>Securing your transaction...</p>
+                </div>
+
+                <button class="btn btn-primary btn-full btn-lg mt-3" id="pay-now-btn" onclick="processPayment()">
+                    Pay Now
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 
