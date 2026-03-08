@@ -272,7 +272,8 @@ async function loadDashboard() {
         refreshAdminData();
     }
 
-    // Load diet plan for dashboard (Members only)
+    // Load progress history for chart
+    let caloriesTarget = 2000;
     try {
         const res = await fetch(`${API}/api/diet/latest/${currentUser.userId}`);
         const data = await res.json();
@@ -280,21 +281,9 @@ async function loadDashboard() {
             document.getElementById('dash-bmi').textContent = data.bmi;
             document.getElementById('dash-bmi-cat').textContent = bmiCategory(data.bmi);
             document.getElementById('dash-calories').textContent = `${data.caloriesTarget} kcal`;
+            caloriesTarget = data.caloriesTarget;
 
-            // Fetch real progress data for the chart
-            try {
-                const progRes = await fetch(`${API}/api/progress/${currentUser.userId}`);
-                const history = await progRes.json();
-                if (history && history.length > 0) {
-                    updateDashChartWithRealData(history);
-                } else {
-                    loadDashChart(data.caloriesTarget);
-                }
-            } catch (e) {
-                loadDashChart(data.caloriesTarget);
-            }
-
-            // Meals highlight from individual fields
+            // Meals highlight
             const meals = [
                 { time: 'Breakfast', content: data.breakfast },
                 { time: 'Lunch', content: data.lunch },
@@ -304,70 +293,67 @@ async function loadDashboard() {
             document.getElementById('dash-meals').innerHTML = meals.map(m => `
                 <p><strong>${m.time}:</strong> ${m.content.substring(0, 60)}...</p>
             `).join('');
-
-            // Reload chart with target
-            loadDashChart(data.caloriesTarget);
-        } else {
-            loadDashChart(2000); // Default if no plan
         }
-    } catch (e) {
-        // Fallback for dashboard chart if fetching fails
+    } catch (e) { }
+
+    try {
+        // Load profile for goal (Members only)
+        try {
+            const profRes = await fetch(`${API}/api/profile/${currentUser.userId}`);
+            const profData = await profRes.json();
+            if (profData.success && profData.fitnessGoal) {
+                const goalLabel = profData.fitnessGoal.replace('_', ' ');
+                document.getElementById('dash-goal').textContent = goalLabel;
+
+                // Random workout tip based on goal
+                const tipKeys = Object.keys(WORKOUT_TIPS_BY_GOAL);
+                const randomTip = WORKOUT_TIPS_BY_GOAL[profData.fitnessGoal] || WORKOUT_TIPS_BY_GOAL[tipKeys[Math.floor(Math.random() * tipKeys.length)]];
+                document.getElementById('dash-workout-tip').textContent = randomTip;
+            } else {
+                document.getElementById('dash-goal').textContent = 'NOT SET';
+                document.getElementById('dash-workout-tip').textContent = 'Set your fitness goal in Profile to see tips!';
+            }
+        } catch (e) { }
+
+        // Load membership for dashboard (Members only)
+        try {
+            const memRes = await fetch(`${API}/api/membership/${currentUser.userId}`);
+            const memData = await memRes.json();
+            if (memData.success) {
+                document.getElementById('dash-plan').textContent = memData.plan;
+                document.getElementById('dash-plan-status').textContent = memData.status;
+            } else {
+                document.getElementById('dash-plan').textContent = 'NO PLAN';
+                document.getElementById('dash-plan-status').textContent = 'INACTIVE';
+            }
+        } catch (e) { }
+
         try {
             const progRes = await fetch(`${API}/api/progress/${currentUser.userId}`);
             const history = await progRes.json();
             if (history && history.length > 0) {
                 updateDashChartWithRealData(history);
             } else {
-                loadDashChart(2000);
+                loadDashChart(caloriesTarget);
             }
-        } catch (err) {
-            loadDashChart(2000);
+        } catch (e) {
+            loadDashChart(caloriesTarget);
         }
+
+        // Health tips (Restored)
+        const tipsList = document.getElementById('health-tips');
+        if (tipsList) {
+            const tips = [
+                "Drink at least 3-4 liters of water daily.",
+                "Ensure 7-8 hours of quality sleep for muscle recovery.",
+                "Focus on protein-rich meals after your workouts.",
+                "Consistency is key! Don't skip your scheduled gym days."
+            ];
+            tipsList.innerHTML = tips.map(t => `<li>${t}</li>`).join('');
+        }
+    } catch (e) {
+        console.error("Dashboard loading error", e);
     }
-
-    // Load profile for goal (Members only)
-    try {
-        const profRes = await fetch(`${API}/api/profile/${currentUser.userId}`);
-        const profData = await profRes.json();
-        if (profData.success && profData.fitnessGoal) {
-            const goalLabel = profData.fitnessGoal.replace('_', ' ');
-            document.getElementById('dash-goal').textContent = goalLabel;
-
-            // Random workout tip based on goal
-            const tipKeys = Object.keys(WORKOUT_TIPS_BY_GOAL);
-            const randomTip = WORKOUT_TIPS_BY_GOAL[profData.fitnessGoal] || WORKOUT_TIPS_BY_GOAL[tipKeys[Math.floor(Math.random() * tipKeys.length)]];
-            document.getElementById('dash-workout-tip').textContent = randomTip;
-        } else {
-            document.getElementById('dash-goal').textContent = 'NOT SET';
-            document.getElementById('dash-workout-tip').textContent = 'Set your fitness goal in Profile to see tips!';
-        }
-    } catch (e) { }
-
-    // Load membership for dashboard (Members only)
-    try {
-        const memRes = await fetch(`${API}/api/membership/${currentUser.userId}`);
-        const memData = await memRes.json();
-        if (memData.success) {
-            document.getElementById('dash-plan').textContent = memData.plan;
-            document.getElementById('dash-plan-status').textContent = memData.status;
-        } else {
-            document.getElementById('dash-plan').textContent = 'NO PLAN';
-            document.getElementById('dash-plan-status').textContent = 'INACTIVE';
-        }
-    } catch (e) { }
-
-    // Load progress history for chart
-    loadDashChart(2000);
-
-    // Health tips (Restored)
-    const tips = [
-        "Drink at least 3-4 liters of water daily.",
-        "Ensure 7-8 hours of quality sleep for muscle recovery.",
-        "Focus on protein-rich meals after your workouts.",
-        "Consistency is key! Don't skip your scheduled gym days."
-    ];
-    const tipsList = document.getElementById('health-tips');
-    if (tipsList) tipsList.innerHTML = tips.map(t => `<li>${t}</li>`).join('');
 }
 
 function updateDashChartWithRealData(history) {
