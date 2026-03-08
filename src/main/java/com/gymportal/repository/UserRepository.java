@@ -17,7 +17,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     long countByIsLoggedInTrue();
 
+    long countByRoleAndIsLoggedInTrue(User.Role role);
+
     long countByRole(User.Role role);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Query("UPDATE User u SET u.isLoggedIn = false")
+    void resetAllLoginStatus();
 
     void deleteByRole(User.Role role);
 }

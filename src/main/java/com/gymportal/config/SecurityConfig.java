@@ -62,13 +62,8 @@ public class SecurityConfig {
     @Bean
     public CommandLineRunner seedAdmin(PasswordEncoder passwordEncoder) {
         return args -> {
-            // Reset all sessions on startup to prevent ghost online status
-            userRepository.findAll().forEach(u -> {
-                if (u.isLoggedIn()) {
-                    u.setLoggedIn(false);
-                    userRepository.save(u);
-                }
-            });
+            // Reset all sessions on startup to prevent ghost online status (bulk query)
+            userRepository.resetAllLoginStatus();
 
             if (!userRepository.existsByRole(User.Role.ADMIN)) {
                 User admin = new User("admin", "admin@gymportal.com",

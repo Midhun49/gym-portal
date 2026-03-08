@@ -1094,7 +1094,7 @@ h3,
     gap: 1.5rem;
 }
 
-.log-card {}
+
 
 .charts-panel {
     display: flex;
@@ -1442,6 +1442,7 @@ h3,
         opacity: 0.8;
     }
 }
+
 /* -- PAYMENT MODAL STYLES -- */
 .payment-methods {
     display: grid;

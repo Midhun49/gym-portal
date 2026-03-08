@@ -114,7 +114,8 @@ public class AdminController {
 
         // Fetch real data from DB
         long totalMembers = userRepository.countByRole(User.Role.MEMBER);
-        long onlineNow = userRepository.countByIsLoggedInTrue();
+        // Count only members who are logged in
+        long onlineNow = userRepository.countByRoleAndIsLoggedInTrue(User.Role.MEMBER);
 
         double revenue = membershipRepository.findAll().stream()
                 .filter(m -> m.getAmountPaid() != null)
