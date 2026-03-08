@@ -9,6 +9,7 @@ let calorieChartInst = null;
 let macroChartInst = null;
 let dashChartInst = null;
 let adminPolling = null;
+let progressChartInst = null;
 
 // ── WORKOUT DATA ──
 const WORKOUT_DATA = [
@@ -753,44 +754,80 @@ function renderProgressCharts(entries) {
     });
     const weights = entries.map(e => e.weightKg);
     const cals = entries.map(e => e.caloriesConsumed);
+    const water = entries.map(e => e.waterIntakeMl);
 
-    const chartOpts = (color) => ({
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-            x: { ticks: { color: '#64748b', maxRotation: 45 }, grid: { color: 'rgba(255,255,255,0.04)' } },
-            y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: false }
-        }
-    });
+    const ctx = document.getElementById('unified-progress-chart').getContext('2d');
+    if (progressChartInst) progressChartInst.destroy();
 
-    const wCtx = document.getElementById('weight-chart').getContext('2d');
-    if (weightChartInst) weightChartInst.destroy();
-    weightChartInst = new Chart(wCtx, {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [{
-                data: weights, label: 'Weight (kg)',
-                borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)',
-                tension: 0.4, fill: true, pointRadius: 4, pointBackgroundColor: '#3b82f6'
-            }]
-        },
-        options: chartOpts('#3b82f6')
-    });
-
-    const cCtx = document.getElementById('calorie-chart').getContext('2d');
-    if (calorieChartInst) calorieChartInst.destroy();
-    calorieChartInst = new Chart(cCtx, {
+    progressChartInst = new Chart(ctx, {
         type: 'bar',
         data: {
             labels,
-            datasets: [{
-                data: cals, label: 'Calories',
-                backgroundColor: 'rgba(245,158,11,0.6)',
-                borderColor: '#f59e0b', borderWidth: 1, borderRadius: 6
-            }]
+            datasets: [
+                {
+                    label: 'Calories (kcal)',
+                    data: cals,
+                    backgroundColor: 'rgba(245, 158, 11, 0.4)',
+                    borderColor: '#f59e0b',
+                    borderWidth: 1,
+                    yAxisID: 'y1',
+                    order: 2
+                },
+                {
+                    label: 'Weight (kg)',
+                    data: weights,
+                    type: 'line',
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'transparent',
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#3b82f6',
+                    tension: 0.4,
+                    yAxisID: 'y',
+                    order: 1
+                },
+                {
+                    label: 'Water (ml)',
+                    data: water,
+                    type: 'line',
+                    borderColor: '#10b981',
+                    borderDash: [5, 5],
+                    borderWidth: 1,
+                    pointRadius: 0,
+                    yAxisID: 'y1', // Water and Calories share the right axis
+                    order: 3
+                }
+            ]
         },
-        options: chartOpts('#f59e0b')
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: { display: true, text: 'Weight (kg)', color: '#64748b' },
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#94a3b8' }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: { display: true, text: 'Calories / Water', color: '#64748b' },
+                    grid: { drawOnChartArea: false },
+                    ticks: { color: '#94a3b8' }
+                },
+                x: {
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#94a3b8' }
+                }
+            },
+            plugins: {
+                legend: { labels: { color: '#94a3b8', font: { size: 12 } } }
+            }
+        }
     });
 
     // Render Progress History Table
