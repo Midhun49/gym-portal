@@ -103,7 +103,7 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void setLoggedInStatus(Long userId, boolean status) {
+    public void setLoggedInStatus(long userId, boolean status) {
         userRepository.findById(userId).ifPresent(u -> {
             u.setLoggedIn(status);
             userRepository.save(u);

@@ -7,9 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 public interface ProgressRepository extends JpaRepository<ProgressEntry, Long> {
-    List<ProgressEntry> findByUserIdOrderByLoggedDateAsc(Long userId);
+    List<ProgressEntry> findByUserIdOrderByLoggedDateAsc(long userId);
 
     @Modifying
     @Transactional
-    void deleteByUserId(Long userId);
+    void deleteByUserId(long userId);
 }

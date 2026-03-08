@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface DietPlanRepository extends JpaRepository<DietPlan, Long> {
-    List<DietPlan> findByUserIdOrderByGeneratedAtDesc(Long userId);
+    List<DietPlan> findByUserIdOrderByGeneratedAtDesc(long userId);
 
-    Optional<DietPlan> findFirstByUserIdOrderByGeneratedAtDesc(Long userId);
+    Optional<DietPlan> findFirstByUserIdOrderByGeneratedAtDesc(long userId);
 
     @Modifying
     @Transactional
-    void deleteByUserId(Long userId);
+    void deleteByUserId(long userId);
 }

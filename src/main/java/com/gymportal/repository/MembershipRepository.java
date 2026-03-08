@@ -7,9 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 public interface MembershipRepository extends JpaRepository<Membership, Long> {
-    Optional<Membership> findByUserId(Long userId);
+    Optional<Membership> findByUserId(long userId);
 
     @Modifying
     @Transactional
-    void deleteByUserId(Long userId);
+    void deleteByUserId(long userId);
 }

@@ -281,6 +281,19 @@ async function loadDashboard() {
             document.getElementById('dash-bmi-cat').textContent = bmiCategory(data.bmi);
             document.getElementById('dash-calories').textContent = `${data.caloriesTarget} kcal`;
 
+            // Fetch real progress data for the chart
+            try {
+                const progRes = await fetch(`${API}/api/progress/${currentUser.userId}`);
+                const history = await progRes.json();
+                if (history && history.length > 0) {
+                    updateDashChartWithRealData(history);
+                } else {
+                    loadDashChart(data.caloriesTarget);
+                }
+            } catch (e) {
+                loadDashChart(data.caloriesTarget);
+            }
+
             // Meals highlight from individual fields
             const meals = [
                 { time: 'Breakfast', content: data.breakfast },
@@ -298,7 +311,18 @@ async function loadDashboard() {
             loadDashChart(2000); // Default if no plan
         }
     } catch (e) {
-        loadDashChart(2000);
+        // Fallback for dashboard chart if fetching fails
+        try {
+            const progRes = await fetch(`${API}/api/progress/${currentUser.userId}`);
+            const history = await progRes.json();
+            if (history && history.length > 0) {
+                updateDashChartWithRealData(history);
+            } else {
+                loadDashChart(2000);
+            }
+        } catch (err) {
+            loadDashChart(2000);
+        }
     }
 
     // Load profile for goal (Members only)
@@ -347,16 +371,39 @@ async function loadDashboard() {
 }
 
 function updateDashChartWithRealData(history) {
-    if (!dashChartInst) return;
+    if (!dashChartInst) {
+        const ctx = document.getElementById('dash-chart').getContext('2d');
+        dashChartInst = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Calorie Trend',
+                    data: [], borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245,158,11,0.1)',
+                    tension: 0.4, fill: true, pointRadius: 3, pointBackgroundColor: '#f59e0b'
+                }]
+            },
+            options: {
+                responsive: true, plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                    y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: false }
+                }
+            }
+        });
+    }
 
     // Take last 7 entries
     const latest = history.slice(-7);
-    const labels = latest.map(e => e.loggedDate.split('-').slice(1).join('/')); // MM/DD
-    const calories = latest.map(e => e.caloriesConsumed);
+    const labels = latest.map(e => {
+        const date = new Date(e.loggedDate);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
+    const calories = latest.map(e => e.caloriesConsumed || 0);
 
     dashChartInst.data.labels = labels;
     dashChartInst.data.datasets[0].data = calories;
-    dashChartInst.data.datasets[0].label = 'Calories Consumed';
     dashChartInst.update();
 }
 
@@ -665,7 +712,10 @@ async function handleProgressLog(e) {
 }
 
 function renderProgressCharts(entries) {
-    const labels = entries.map(e => e.loggedDate);
+    const labels = entries.map(e => {
+        const date = new Date(e.loggedDate);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
     const weights = entries.map(e => e.weightKg);
     const cals = entries.map(e => e.caloriesConsumed);
 
@@ -707,6 +757,20 @@ function renderProgressCharts(entries) {
         },
         options: chartOpts('#f59e0b')
     });
+
+    // Render Progress History Table
+    const tbody = document.getElementById('progress-history-tbody');
+    if (tbody) {
+        tbody.innerHTML = entries.slice().reverse().map(e => `
+            <tr>
+                <td>${e.loggedDate}</td>
+                <td><strong>${e.weightKg || '—'}</strong></td>
+                <td>${e.caloriesConsumed || '—'}</td>
+                <td>${e.waterIntakeMl || '—'}</td>
+                <td><small>${e.notes || '—'}</small></td>
+            </tr>
+        `).join('');
+    }
 }
 
 // ─────────── ADMIN ───────────
