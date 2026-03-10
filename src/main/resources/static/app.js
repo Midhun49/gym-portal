@@ -875,8 +875,8 @@ async function refreshAdminData() {
                     <tr>
                         <td>${i + 1}</td>
                         <td>
-                            <span class="status-dot ${m.isLoggedIn ? 'status-online' : 'status-offline'}" 
-                                  title="${m.isLoggedIn ? 'Online' : 'Offline'}"></span>
+                            <span class="status-dot status-online" 
+                                  title="Online"></span>
                         </td>
                         <td><strong>${m.username}</strong></td>
                         <td>${m.email}</td>
