@@ -6,6 +6,7 @@ import com.gymportal.repository.UserRepository;
 import com.gymportal.service.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -50,19 +51,13 @@ public class ProfileController {
     @PostMapping("/{userId}")
     public ResponseEntity<Map<String, Object>> saveProfile(
             @PathVariable long userId,
-            @RequestBody ProfileRequest req) {
+            @Valid @RequestBody ProfileRequest req) {
         Map<String, Object> response = new HashMap<>();
-        try {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            profileService.saveOrUpdate(user, req);
-            response.put("success", true);
-            response.put("message", "Profile saved successfully!");
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        profileService.saveOrUpdate(user, req);
+        response.put("success", true);
+        response.put("message", "Profile saved successfully!");
+        return ResponseEntity.ok(response);
     }
 }

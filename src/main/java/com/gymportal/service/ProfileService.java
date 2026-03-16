@@ -5,6 +5,8 @@ import com.gymportal.entity.User;
 import com.gymportal.dto.ProfileRequest;
 import com.gymportal.repository.MemberProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
 
@@ -14,6 +16,7 @@ public class ProfileService {
     @Autowired
     private MemberProfileRepository profileRepository;
 
+    @CacheEvict(value = "profiles", key = "#user.id")
     public MemberProfile saveOrUpdate(User user, ProfileRequest req) {
         MemberProfile profile = profileRepository.findByUserId(user.getId())
                 .orElse(new MemberProfile());
@@ -31,6 +34,7 @@ public class ProfileService {
         return profileRepository.save(profile);
     }
 
+    @Cacheable(value = "profiles", key = "#userId")
     public Optional<MemberProfile> getProfile(long userId) {
         return profileRepository.findByUserId(userId);
     }

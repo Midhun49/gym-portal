@@ -5,6 +5,8 @@ import com.gymportal.entity.MemberProfile;
 import com.gymportal.entity.User;
 import com.gymportal.repository.DietPlanRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -168,6 +170,7 @@ public class DietAIService {
 
     // ─────────────────── CORE AI METHOD ───────────────────
 
+    @CacheEvict(value = "dietPlans", key = "#user.id")
     public DietPlan generateDietPlan(MemberProfile profile, User user) {
         double heightM = profile.getHeightCm() / 100.0;
         double weight = profile.getWeightKg();
@@ -315,6 +318,7 @@ public class DietAIService {
         return sb.toString();
     }
 
+    @Cacheable(value = "dietPlans", key = "#userId")
     public Optional<DietPlan> getLatestDietPlan(long userId) {
         return dietPlanRepository.findFirstByUserIdOrderByGeneratedAtDesc(userId);
     }

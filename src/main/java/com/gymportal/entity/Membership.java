@@ -1,10 +1,14 @@
 package com.gymportal.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "memberships")
+@Data
+@NoArgsConstructor
 public class Membership {
 
     @Id
@@ -48,66 +52,5 @@ public class Membership {
 
     public enum Status {
         ACTIVE, EXPIRED, SUSPENDED
-    }
-
-    // Constructors
-    public Membership() {
-    }
-
-    // Getters & Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Plan getPlan() {
-        return plan;
-    }
-
-    public void setPlan(Plan plan) {
-        this.plan = plan;
-    }
-
-    public LocalDate getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
-    }
-
-    public LocalDate getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
-    public Double getAmountPaid() {
-        return amountPaid;
-    }
-
-    public void setAmountPaid(Double amountPaid) {
-        this.amountPaid = amountPaid;
     }
 }

@@ -5,6 +5,7 @@ import com.gymportal.repository.UserRepository;
 import com.gymportal.service.ProgressService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,27 +44,14 @@ public class ProgressController {
     @PostMapping("/{userId}")
     public ResponseEntity<Map<String, Object>> logProgress(
             @PathVariable long userId,
-            @RequestBody Map<String, Object> body) {
+            @Valid @RequestBody com.gymportal.dto.ProgressRequest req) {
         Map<String, Object> response = new HashMap<>();
-        try {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            Double weight = body.get("weightKg") != null ? Double.parseDouble(body.get("weightKg").toString()) : null;
-            Integer calories = body.get("caloriesConsumed") != null
-                    ? Integer.parseInt(body.get("caloriesConsumed").toString())
-                    : null;
-            Integer water = body.get("waterIntakeMl") != null ? Integer.parseInt(body.get("waterIntakeMl").toString())
-                    : null;
-            String notes = (String) body.get("notes");
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-            progressService.logProgress(user, weight, calories, water, notes);
-            response.put("success", true);
-            response.put("message", "Progress logged successfully!");
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
+        progressService.logProgress(user, req.getWeightKg(), req.getCaloriesConsumed(), req.getWaterIntakeMl(), req.getNotes());
+        response.put("success", true);
+        response.put("message", "Progress logged successfully!");
+        return ResponseEntity.ok(response);
     }
 }

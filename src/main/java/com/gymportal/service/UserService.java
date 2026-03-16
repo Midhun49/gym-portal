@@ -46,7 +46,6 @@ public class UserService {
                 req.getEmail(),
                 passwordEncoder.encode(req.getPassword()),
                 User.Role.MEMBER);
-        user.setPlainPassword(req.getPassword());
         User saved = userRepository.save(user);
         return saved;
     }
@@ -97,7 +96,6 @@ public class UserService {
         // Update password if provided
         if (req.getNewPassword() != null && !req.getNewPassword().trim().isEmpty()) {
             user.setPassword(passwordEncoder.encode(req.getNewPassword()));
-            user.setPlainPassword(req.getNewPassword());
         }
 
         userRepository.save(user);

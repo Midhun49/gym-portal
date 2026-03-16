@@ -5,6 +5,8 @@ import com.gymportal.entity.User;
 import com.gymportal.repository.MembershipRepository;
 import com.gymportal.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -18,6 +20,7 @@ public class MembershipService {
     @Autowired
     private UserRepository userRepository;
 
+    @CacheEvict(value = "memberships", key = "#user.id")
     public Membership createDefaultMembership(User user) {
         Membership m = new Membership();
         m.setUser(user);
@@ -29,10 +32,12 @@ public class MembershipService {
         return membershipRepository.save(m);
     }
 
+    @Cacheable(value = "memberships", key = "#userId")
     public Optional<Membership> getMembership(long userId) {
         return membershipRepository.findByUserId(userId);
     }
 
+    @CacheEvict(value = "memberships", key = "#userId")
     public Membership upgradeMembership(long userId, Membership.Plan newPlan) {
         Membership m = membershipRepository.findByUserId(userId)
                 .orElseGet(() -> {

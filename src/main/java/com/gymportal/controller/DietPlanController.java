@@ -30,20 +30,13 @@ public class DietPlanController {
     @Operation(summary = "Generate AI diet plan", description = "Uses member profile data to generate a personalised Indian diet plan")
     @PostMapping("/generate/{userId}")
     public ResponseEntity<Map<String, Object>> generateDietPlan(@PathVariable long userId) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            MemberProfile profile = profileService.getProfile(userId)
-                    .orElseThrow(() -> new RuntimeException("Please complete your profile first!"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        MemberProfile profile = profileService.getProfile(userId)
+                .orElseThrow(() -> new RuntimeException("Please complete your profile first!"));
 
-            DietPlan plan = dietAIService.generateDietPlan(profile, user);
-            return ResponseEntity.ok(buildPlanResponse(plan, true, null));
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
+        DietPlan plan = dietAIService.generateDietPlan(profile, user);
+        return ResponseEntity.ok(buildPlanResponse(plan, true, null));
     }
 
     @Operation(summary = "Get latest diet plan", description = "Returns the most recently generated diet plan for a member")

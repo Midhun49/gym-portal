@@ -40,8 +40,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/webjars/**")
                         .permitAll()
-                        .anyRequest().permitAll())
-                .headers(headers -> headers.frameOptions(f -> f.disable())); // Allow H2 console
+                        .anyRequest().permitAll());
 
         return http.build();
     }

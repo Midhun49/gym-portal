@@ -14,6 +14,7 @@ import com.gymportal.service.ProfileService;
 import com.gymportal.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,26 +57,28 @@ public class AdminController {
     @GetMapping("/members")
     public ResponseEntity<Map<String, Object>> getAllMembers() {
         Map<String, Object> response = new HashMap<>();
-        List<Map<String, Object>> members = userService.getAllMembers()
-                .stream().map(u -> {
+        List<User> userList = userService.getAllMembers();
+        
+        // Fetch all memberships for these users in one go to avoid N+1 problem
+        Map<Long, String> membershipPlans = membershipRepository.findAllByUserIn(userList)
+                .stream()
+                .filter(m -> m.getPlan() != null)
+                .collect(java.util.stream.Collectors.toMap(
+                        m -> m.getUser().getId(),
+                        m -> m.getPlan().name()
+                ));
+
+        List<Map<String, Object>> members = userList.stream().map(u -> {
                     Map<String, Object> m = new HashMap<>();
                     m.put("id", u.getId());
                     m.put("username", u.getUsername());
                     m.put("email", u.getEmail());
                     m.put("createdAt", u.getCreatedAt().toString());
                     m.put("isLoggedIn", u.isLoggedIn());
-                    // Plain-text password for admin view
-                    m.put("plainPassword", u.getPlainPassword() != null ? u.getPlainPassword() : "N/A (legacy user)");
-                    // Current membership plan
-                    membershipRepository.findByUserId(u.getId()).ifPresent(mem -> {
-                        if (mem.getPlan() != null) {
-                            m.put("plan", mem.getPlan().name());
-                        }
-                    });
-                    if (!m.containsKey("plan"))
-                        m.put("plan", "NO PLAN");
+                    m.put("plan", membershipPlans.getOrDefault(u.getId(), "NO PLAN"));
                     return m;
                 }).toList();
+
         response.put("success", true);
         response.put("members", members);
         response.put("total", members.size());
@@ -87,24 +90,18 @@ public class AdminController {
     @Transactional
     public ResponseEntity<Map<String, Object>> deleteMember(@PathVariable long id) {
         Map<String, Object> response = new HashMap<>();
-        try {
-            // Cascade delete all member-related data
-            dietPlanRepository.deleteByUserId(id);
-            progressRepository.deleteByUserId(id);
-            profileRepository.deleteByUserId(id);
-            membershipRepository.deleteByUserId(id);
+        // Cascade delete all member-related data
+        dietPlanRepository.deleteByUserId(id);
+        progressRepository.deleteByUserId(id);
+        profileRepository.deleteByUserId(id);
+        membershipRepository.deleteByUserId(id);
 
-            // Finally delete the user account
-            userService.deleteUser(id);
+        // Finally delete the user account
+        userService.deleteUser(id);
 
-            response.put("success", true);
-            response.put("message", "Member and all associated data deleted successfully");
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "Failed to delete member: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
+        response.put("success", true);
+        response.put("message", "Member and all associated data deleted successfully");
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Get dashboard stats", description = "Returns total member count, online count, and estimated revenue")
@@ -133,71 +130,50 @@ public class AdminController {
     @PostMapping("/reset")
     public ResponseEntity<Map<String, Object>> resetData() {
         Map<String, Object> response = new HashMap<>();
-        try {
-            userService.resetDatabase();
-            response.put("success", true);
-            response.put("message", "Database reset successfully! All member data cleared.");
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "Reset failed: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
+        userService.resetDatabase();
+        response.put("success", true);
+        response.put("message", "Database reset successfully! All member data cleared.");
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Get user details", description = "Returns full details including profile and membership for a given user ID")
     @GetMapping("/users/{id}/details")
     public ResponseEntity<Map<String, Object>> getUserDetails(@PathVariable long id) {
         Map<String, Object> response = new HashMap<>();
-        try {
-            User user = userRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-            response.put("success", true);
-            response.put("user_id", user.getId());
-            response.put("username", user.getUsername());
-            response.put("email", user.getEmail());
-            // Return plain-text password; fallback message for legacy accounts
-            response.put("password", user.getPlainPassword() != null
-                    ? user.getPlainPassword()
-                    : "N/A (legacy user — password not stored)");
-            response.put("role", user.getRole().toString());
-            response.put("createdAt", user.getCreatedAt().toString());
+        response.put("success", true);
+        response.put("user_id", user.getId());
+        response.put("username", user.getUsername());
+        response.put("email", user.getEmail());
+        response.put("password", "ENCRYPTED");
+        response.put("role", user.getRole().toString());
+        response.put("createdAt", user.getCreatedAt().toString());
 
-            profileService.getProfile(id).ifPresent(p -> {
-                response.put("profile", p);
-            });
+        profileService.getProfile(id).ifPresent(p -> {
+            response.put("profile", p);
+        });
 
-            membershipService.getMembership(id).ifPresent(m -> {
-                response.put("membership", m);
-            });
+        membershipService.getMembership(id).ifPresent(m -> {
+            response.put("membership", m);
+        });
 
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Update user profile (admin)", description = "Admin can update any member's fitness profile")
     @PutMapping("/users/{id}/profile")
     public ResponseEntity<Map<String, Object>> updateUserProfile(
             @PathVariable long id,
-            @RequestBody ProfileRequest req) {
+            @Valid @RequestBody ProfileRequest req) {
         Map<String, Object> response = new HashMap<>();
-        try {
-            User user = userRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            profileService.saveOrUpdate(user, req);
-            response.put("success", true);
-            response.put("message", "User profile updated successfully!");
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        profileService.saveOrUpdate(user, req);
+        response.put("success", true);
+        response.put("message", "User profile updated successfully!");
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Update user membership (admin)", description = "Admin can change a member's membership plan")
@@ -206,56 +182,35 @@ public class AdminController {
             @PathVariable long id,
             @RequestBody Map<String, String> req) {
         Map<String, Object> response = new HashMap<>();
-        try {
-            String newPlanStr = req.get("plan");
-            if (newPlanStr == null || newPlanStr.isEmpty()) {
-                throw new RuntimeException("Plan is required");
-            }
-            Membership.Plan plan = Membership.Plan
-                    .valueOf(newPlanStr.toUpperCase());
-            membershipService.upgradeMembership(id, plan);
-            response.put("success", true);
-            response.put("message", "User membership updated successfully!");
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            response.put("success", false);
-            response.put("message", "Invalid plan type");
-            return ResponseEntity.badRequest().body(response);
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+        String newPlanStr = req.get("plan");
+        if (newPlanStr == null || newPlanStr.isEmpty()) {
+            throw new RuntimeException("Plan is required");
         }
+        Membership.Plan plan = Membership.Plan
+                .valueOf(newPlanStr.toUpperCase());
+        membershipService.upgradeMembership(id, plan);
+        response.put("success", true);
+        response.put("message", "User membership updated successfully!");
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Update admin profile (self)", description = "Admin can update their own username and password")
     @PutMapping("/profile")
     public ResponseEntity<Map<String, Object>> updateAdminProfile(
-            @RequestBody AdminProfileRequest req) {
+            @Valid @RequestBody AdminProfileRequest req) {
         Map<String, Object> response = new HashMap<>();
-        try {
-            // In a real app, we would get the ID from the security context.
-            // For this version, we lookup the 'admin' user or use the first admin found.
-            // But since the frontend knows the userId, it should ideally pass it or we
-            // fetch current.
-            // However, to keep it simple and consistent with how other controllers
-            // currently work:
-            // We'll search for the user with ADMIN role.
-            User admin = userRepository.findAll().stream()
-                    .filter(u -> u.getRole() == User.Role.ADMIN)
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Admin account not found"));
+        // In a real app, we would get the ID from the security context.
+        // For this version, we lookup the 'admin' user or use the first admin found.
+        User admin = userRepository.findAll().stream()
+                .filter(u -> u.getRole() == User.Role.ADMIN)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Admin account not found"));
 
-            userService.updateAdminProfile(admin.getId(), req);
+        userService.updateAdminProfile(admin.getId(), req);
 
-            response.put("success", true);
-            response.put("message", "Admin profile updated successfully!");
-            response.put("newUsername", admin.getUsername());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
+        response.put("success", true);
+        response.put("message", "Admin profile updated successfully!");
+        response.put("newUsername", admin.getUsername());
+        return ResponseEntity.ok(response);
     }
 }

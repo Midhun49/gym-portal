@@ -45,27 +45,25 @@ public class MembershipController {
             @PathVariable long userId,
             @RequestBody Map<String, String> body) {
         Map<String, Object> response = new HashMap<>();
-        try {
-            String planStr = body.get("plan");
-            String paymentMethod = body.getOrDefault("paymentMethod", "UNSPECIFIED");
+        String planStr = body.get("plan");
+        String paymentMethod = body.getOrDefault("paymentMethod", "UNSPECIFIED");
 
-            Membership.Plan plan = Membership.Plan.valueOf(planStr);
-            Membership m = membershipService.upgradeMembership(userId, plan);
-
-            // Log payment (simulated)
-            System.out.println("Payment processed for user " + userId + " via " + paymentMethod + " for plan " + plan);
-
-            response.put("success", true);
-            response.put("message", "Membership upgraded to " + plan + "!");
-            response.put("plan", m.getPlan());
-            response.put("endDate", m.getEndDate().toString());
-            response.put("amountPaid", m.getAmountPaid());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+        if (planStr == null) {
+            throw new RuntimeException("Plan is required");
         }
+
+        Membership.Plan plan = Membership.Plan.valueOf(planStr.toUpperCase());
+        Membership m = membershipService.upgradeMembership(userId, plan);
+
+        // Log payment (simulated)
+        System.out.println("Payment processed for user " + userId + " via " + paymentMethod + " for plan " + plan);
+
+        response.put("success", true);
+        response.put("message", "Membership upgraded to " + plan + "!");
+        response.put("plan", m.getPlan());
+        response.put("endDate", m.getEndDate().toString());
+        response.put("amountPaid", m.getAmountPaid());
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "List all plans", description = "Returns all available membership tiers with price and description")
