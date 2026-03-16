@@ -36,14 +36,18 @@ public class DietPlanController {
                 .orElseThrow(() -> new RuntimeException("Please complete your profile first!"));
 
         DietPlan plan = dietAIService.generateDietPlan(profile, user);
-        return ResponseEntity.ok(buildPlanResponse(plan, true, null));
+        return ResponseEntity.ok(buildPlanResponse(plan, true, null, false));
     }
 
     @Operation(summary = "Get latest diet plan", description = "Returns the most recently generated diet plan for a member")
     @GetMapping("/latest/{userId}")
     public ResponseEntity<Map<String, Object>> getLatestPlan(@PathVariable long userId) {
+        MemberProfile profile = profileService.getProfile(userId).orElse(null);
         return dietAIService.getLatestDietPlan(userId)
-                .map(plan -> ResponseEntity.ok(buildPlanResponse(plan, true, null)))
+                .map(plan -> {
+                    boolean isStale = profile != null && profile.getUpdatedAt() != null && plan.getGeneratedAt().isBefore(profile.getUpdatedAt());
+                    return ResponseEntity.ok(buildPlanResponse(plan, true, null, isStale));
+                })
                 .orElseGet(() -> {
                     Map<String, Object> r = new HashMap<>();
                     r.put("success", false);
@@ -55,18 +59,23 @@ public class DietPlanController {
     @Operation(summary = "Get diet plan history", description = "Returns all previously generated diet plans for a member")
     @GetMapping("/history/{userId}")
     public ResponseEntity<List<Map<String, Object>>> getPlanHistory(@PathVariable long userId) {
+        MemberProfile profile = profileService.getProfile(userId).orElse(null);
         List<Map<String, Object>> result = dietAIService.getAllDietPlans(userId)
                 .stream()
-                .map(p -> buildPlanResponse(p, true, null))
+                .map(p -> {
+                    boolean isStale = profile != null && profile.getUpdatedAt() != null && p.getGeneratedAt().isBefore(profile.getUpdatedAt());
+                    return buildPlanResponse(p, true, null, isStale);
+                })
                 .toList();
         return ResponseEntity.ok(result);
     }
 
-    private Map<String, Object> buildPlanResponse(DietPlan plan, boolean success, String msg) {
+    private Map<String, Object> buildPlanResponse(DietPlan plan, boolean success, String msg, boolean isStale) {
         Map<String, Object> r = new HashMap<>();
         r.put("success", success);
         if (msg != null)
             r.put("message", msg);
+        r.put("isStale", isStale);
         r.put("id", plan.getId());
         r.put("caloriesTarget", plan.getCaloriesTarget());
         r.put("proteinG", plan.getProteinG());

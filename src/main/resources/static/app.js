@@ -474,7 +474,7 @@ async function handleProfileSave(e) {
 }
 
 // ─────────── DIET PLAN ───────────
-async function loadLatestDiet() {
+async function loadDietPlan() {
     try {
         const profRes = await fetch(`${API}/api/profile/${currentUser.userId}`);
         const profData = await profRes.json();
@@ -532,7 +532,27 @@ async function generateDietPlan() {
 }
 
 function renderDietPlan(data) {
-    document.getElementById('diet-plan-container').classList.remove('hidden');
+    const container = document.getElementById('diet-plan-container');
+    container.classList.remove('hidden');
+
+    // Show staleness notice if plan is based on old preferences
+    const staleNotice = document.getElementById('diet-stale-notice');
+    if (staleNotice) {
+        if (data.isStale) {
+            staleNotice.innerHTML = `
+                <div style="background:rgba(245,158,11,0.1); color:#f59e0b; padding:12px; border-radius:8px; border:1px solid rgba(245,158,11,0.2); margin-bottom:16px; font-size:14px; display:flex; align-items:center; gap:10px;">
+                    <span>⚠️</span>
+                    <div>
+                        <strong>Outdated Preferences:</strong> This plan was generated before your last profile update. 
+                        For better results, consider regenerating it.
+                    </div>
+                </div>
+            `;
+            staleNotice.classList.remove('hidden');
+        } else {
+            staleNotice.classList.add('hidden');
+        }
+    }
 
     document.getElementById('dp-bmi').textContent = `${data.bmi} (${bmiCategory(data.bmi)})`;
     document.getElementById('dp-bmr').textContent = Math.round(data.bmr);

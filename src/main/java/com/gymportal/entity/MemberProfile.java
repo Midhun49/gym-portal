@@ -38,6 +38,9 @@ public class MemberProfile {
 
     private String phoneNumber;
     private String address;
+    
+    @org.hibernate.annotations.UpdateTimestamp
+    private java.time.LocalDateTime updatedAt;
 
     public enum Gender { MALE, FEMALE }
     public enum FitnessGoal { LOSE_WEIGHT, GAIN_MUSCLE, MAINTAIN, IMPROVE_ENDURANCE }
