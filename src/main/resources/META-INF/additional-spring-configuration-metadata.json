@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "app.url",
+      "type": "java.lang.String",
+      "description": "The public URL of the application, used for keep-alive pings."
+    }
+  ]
+}
