@@ -12,7 +12,7 @@
 
     <groupId>com.gymportal</groupId>
     <artifactId>gym-portal</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <name>Gym Portal Management System</name>
     <description>Gym Portal with AI Diet Plans - Purely Light Theme</description>
 
