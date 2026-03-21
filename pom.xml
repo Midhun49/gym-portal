@@ -14,7 +14,7 @@
     <artifactId>gym-portal</artifactId>
     <version>1.0.0</version>
     <name>Gym Portal Management System</name>
-    <description>Gym Portal with AI Diet Plans</description>
+    <description>Gym Portal with AI Diet Plans - Purely Light Theme</description>
 
     <properties>
         <java.version>21</java.version>
